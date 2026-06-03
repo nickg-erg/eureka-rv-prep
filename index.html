@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Eureka — Prep & Line Recipes</title>
+  <meta name="description" content="Back-of-house recipe viewer for Eureka Restaurant Group" />
+  <style>
+    /* =========================================================================
+       BRANDING — retune here. Drop the real Eureka orange + logo and you're done.
+       ========================================================================= */
+    :root{
+      --eureka-orange:#FF671D;   /* Eureka brand orange */
+      --ink:#161616;
+      --ink-2:#202020;
+      --ink-3:#3a3a3a;
+      --hair:#6b6b6b;
+      --paper:#efedea;
+      --card:#ffffff;
+      --note:#e2e0dc;
+      --text:#171717;
+      --text-soft:#565656;
+      --nav-w:13rem;
+
+      --mono:"Menlo","SF Mono","Roboto Mono","Consolas",monospace;
+      --display:Helvetica,"Helvetica Neue",Arial,sans-serif;
+    }
+
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;padding:0;
+      font-family:var(--display);
+      background:var(--paper);
+      color:var(--text);
+      -webkit-text-size-adjust:100%;
+      overflow:hidden;            /* page never scrolls; only lists/recipes do */
+    }
+
+    .app{
+      display:grid;
+      grid-template-columns:var(--nav-w) 1fr;
+      height:100dvh;
+    }
+
+    /* ============================ A–Z ROLODEX ============================ */
+    .az{
+      background:var(--ink);
+      display:flex;flex-direction:column;
+      height:100dvh;
+      user-select:none;
+    }
+    .az a{
+      flex:1 1 0;
+      display:flex;align-items:center;justify-content:center;gap:1.1rem;
+      color:#fff;text-decoration:none;
+      font-family:var(--mono);
+      font-size:1.6rem;letter-spacing:.05em;text-transform:uppercase;
+      border-bottom:1px solid #3a3a3a;
+      transition:background .12s ease;
+    }
+    .az a:nth-child(2n){background:var(--ink-2);}
+    .az a:active{background:var(--eureka-orange);}
+    .az .brand{
+      flex:0 0 auto;
+      padding:1.1rem 1rem 1.3rem;
+      background:var(--ink);
+      display:flex;align-items:center;
+    }
+    .az .brand svg{width:100%;height:auto;max-width:8.5rem;display:block;}
+
+    /* ============================== STAGE =============================== */
+    .stage{position:relative;height:100dvh;overflow:hidden;}
+
+    /* both list-panes and recipe-pages live here, shown via :target */
+    .list,.recipe{
+      position:absolute;inset:0;
+      display:none;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
+    }
+    .list:target{display:flex;flex-direction:column;}
+    .recipe:target{display:block;}
+
+    /* ----- letter list pane ----- */
+    .list{padding:1rem 1.25rem 3rem;}
+    .letter{
+      font-family:var(--display);font-weight:900;text-transform:uppercase;
+      font-size:1.4rem;margin:1.1rem 0 .35rem;
+      border-left:4px solid var(--eureka-orange);padding-left:.5rem;
+    }
+    .letter:first-child{margin-top:.25rem;}
+    .list a{
+      display:block;width:fit-content;
+      background:var(--card);color:var(--ink);text-decoration:none;
+      border:1px solid #c9c9c9;border-left:3px solid var(--ink);
+      font-size:1.35rem;padding:.7rem 1rem;margin:.4rem 0;
+      transition:border-color .12s ease,transform .06s ease;
+    }
+    .list a:active{border-left-color:var(--eureka-orange);transform:translateX(2px);}
+
+    /* ----- recipe page ----- */
+    .recipe{padding:1.1rem 1.4rem 3rem;}
+    .rhead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+      border-bottom:2px solid var(--ink);padding-bottom:.4rem;margin-bottom:.8rem;}
+    .rhead h1{
+      font-family:var(--display);font-weight:900;letter-spacing:-.02em;
+      font-size:2.5rem;margin:0;line-height:1.02;text-transform:capitalize;
+    }
+    .back{
+      flex:0 0 auto;font-family:var(--mono);font-size:.95rem;
+      color:var(--text-soft);text-decoration:none;border:1px solid #c9c9c9;
+      padding:.4rem .7rem;border-radius:2px;white-space:nowrap;
+    }
+    .back:active{background:var(--eureka-orange);color:#fff;border-color:var(--eureka-orange);}
+
+    .meta{display:grid;grid-template-columns:max-content 1fr;gap:.5rem 1.6rem;
+      align-items:baseline;margin:.2rem 0 1.1rem;}
+    .meta .lbl{font-family:var(--display);font-weight:800;font-size:1.12rem;color:var(--ink);
+      border-left:4px solid var(--eureka-orange);padding-left:.55rem;line-height:1.15;}
+    .meta .val{font-family:var(--display);color:var(--text);font-size:1.1rem;line-height:1.15;}
+    .meta .val .tag{font-family:var(--mono);color:var(--text-soft);font-size:.92rem;margin-right:.15rem;}
+
+    .note{background:var(--note);padding:.6rem .8rem;margin:0 0 1rem;max-width:64rem;}
+    .note h3{margin:0 0 .2rem;font-size:1.05rem;}
+    .note p{margin:.1rem 0;font-size:1.02rem;line-height:1.35;}
+
+    .plate{font-family:var(--mono);font-size:.95rem;color:var(--eureka-orange);
+      text-transform:uppercase;letter-spacing:.06em;margin:0 0 .6rem;}
+    .dish-img{max-width:22rem;width:100%;border-radius:4px;margin:0 0 1rem;display:block;}
+
+    table{width:100%;border-collapse:collapse;border:2px solid var(--ink-3);
+      background:var(--card);max-width:78rem;}
+    thead th{background:var(--ink-3);color:#fff;font-weight:800;
+      font-size:.95rem;letter-spacing:.08em;padding:.5rem .8rem;text-align:left;border:1px solid #fff;}
+    thead th.batch{text-align:center;}
+    thead tr.sub th{background:var(--ink-2);font-family:var(--mono);font-weight:700;
+      text-transform:lowercase;letter-spacing:0;padding:.3rem .8rem;font-size:.92rem;text-align:center;}
+    thead tr.sub th .bx{font-family:var(--mono);font-weight:700;}
+    thead tr.sub th .yld{display:block;font-family:var(--display);font-weight:400;
+      text-transform:none;font-size:.78rem;color:#d2d2d2;margin-top:.12rem;letter-spacing:.01em;}
+    tbody td{border:1px solid #b9b9b9;font-family:var(--display);font-size:1.05rem;
+      padding:.5rem .65rem;vertical-align:top;line-height:1.34;}
+    tbody tr:nth-child(even) td{background:#faf8f6;}
+    td.ing{min-width:9rem;font-weight:600;}
+    td.qty,td.uom{text-align:center;white-space:nowrap;font-family:var(--mono);}
+    td.proc{width:48%;}
+    td.proc ol{margin:0;padding-left:1.4rem;}
+    td.proc li+li{margin-top:.7rem;}
+
+    /* ============================ iPad mini landscape ============================ */
+    @media (max-width:1100px){
+      :root{--nav-w:11rem;}
+      .az a{font-size:1.35rem;gap:.7rem;}
+      .rhead h1{font-size:2rem;}
+      tbody td{font-size:.95rem;}
+    }
+    /* ============================ phone fallback ============================ */
+    @media (max-width:560px){
+      body{overflow:auto;}
+      .app{display:flex;flex-direction:column;height:auto;}
+      .az{flex-direction:row;flex-wrap:wrap;height:auto;}
+      .az a{flex:1 0 16%;font-size:1.05rem;padding:.7rem 0;border:1px solid #3a3a3a;}
+      .az .brand{flex:1 0 100%;}
+      .stage{height:auto;overflow:visible;}
+      .list,.recipe{position:static;}
+      .meta{grid-template-columns:1fr;gap:.15rem;}
+      .rhead h1{font-size:1.6rem;}
+      table,thead,tbody,tr{display:block;}
+      td.proc{width:auto;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="az" id="az"></nav>
+    <main class="stage" id="stage"></main>
+  </div>
+
+  <script>
+  /* ==========================================================================
+     RECIPE DATA  —  this whole array is what Make.com regenerates from the
+     Google Sheet on publish. Nothing below this block is touched by editors.
+     Schema mirrors the agreed three Sheet tabs, joined by slug.
+     ========================================================================== */
+  /* RECIPES:START — Make regenerates everything between these two markers from the Google Sheet. */
+  const RECIPES = [
+    {
+      slug:"black-garlic-aioli", name:"Black Garlic Aioli", concept:"Eureka", type:"prep",
+      yield_1x:"5 cups", yield_2x:"10 cups", prep_time:"", shelf_life:"5 days",
+      note:"",
+      ingredients:[
+        {ingredient:"Mayonnaise",          qty_1x:"4",  qty_2x:"8",  uom:"cup"},
+        {ingredient:"Black Garlic",        qty_1x:"12", qty_2x:"24", uom:"ea"},
+        {ingredient:"Garlic, Fresh Minced",qty_1x:"4",  qty_2x:"8",  uom:"tbsp"},
+        {ingredient:"Lemon Juice",         qty_1x:"2",  qty_2x:"4",  uom:"oz-fl"},
+        {ingredient:"Rice Vinegar",        qty_1x:"4",  qty_2x:"8",  uom:"tsp"},
+        {ingredient:"Soy Sauce",           qty_1x:"4",  qty_2x:"8",  uom:"tsp"},
+        {ingredient:"Dijon Mustard",       qty_1x:"2",  qty_2x:"4",  uom:"tsp"},
+        {ingredient:"Honey",               qty_1x:"2",  qty_2x:"4",  uom:"tsp"},
+        {ingredient:"Kosher Salt",         qty_1x:"1",  qty_2x:"2",  uom:"tsp"},
+        {ingredient:"Lime Juice",          qty_1x:"2",  qty_2x:"4",  uom:"tsp"}
+      ],
+      steps:[
+        {text:"Process mayonnaise, black garlic, and garlic in robot coupe until smooth."},
+        {text:"Add the remaining ingredients and pulse until thoroughly combined."},
+        {text:"Transfer to a labeled container and store in the walk-in until needed on the line."}
+      ]
+    },
+
+    /* ---- STACKED recipe reused to demo the NOTE box + OPTIONAL step alignment ---- */
+    {
+      slug:"caramelized-onions", name:"Caramelized Onions", concept:"Eureka", type:"prep",
+      yield_1x:"1.5 lb", yield_2x:"3 lb", prep_time:"10 min.", shelf_life:"3 days",
+      note:"Once onions are done, remove from heat and place on sheet tray to cool.\nDo not leave pot on stove as the pilot light will continue to cook and the onions will turn to mush.",
+      ingredients:[
+        {ingredient:"Yellow Onions, sliced 1/4\" then cut to 1\"", qty_1x:"2", qty_2x:"4", uom:"lbs", step_group:"A"},
+        {ingredient:"Phase Butter",     qty_1x:"2", qty_2x:"4", uom:"oz",   step_group:"A"},
+        {ingredient:"Kosher Salt",      qty_1x:"1", qty_2x:"2", uom:"tsp",  step_group:"A"},
+        {ingredient:"Black Pepper",     qty_1x:"1", qty_2x:"2", uom:"tsp",  step_group:"A"},
+        {ingredient:"Granulated Sugar", qty_1x:"1", qty_2x:"2", uom:"tbsp", step_group:"B"},
+        {ingredient:"Maple Syrup",      qty_1x:"1", qty_2x:"2", uom:"tbsp", step_group:"B"}
+      ],
+      steps:[
+        {text:"In large container coat onions with phase butter. Sprinkle kosher salt, black pepper and mix.", step_group:"A"},
+        {text:"Pre-heat flat top to 400°. Place onions on hot flat top and distribute evenly. Sautée 2 minutes, flip, and sautée another 2 minutes, mixing with two metal spatulas to bring onions from the middle to the surface.", step_group:"A"},
+        {text:"Distribute onions on the flat top again and sautée for another 2 minutes.", step_group:"A"},
+        {text:"With both spatulas, transfer the sautéed onions to a large aluminum pot.", step_group:"A"},
+        {text:"Place pot on a stove burner on high flame. Add sugar and syrup, toss well to coat. Caramelize for 2 minutes, flipping with a spatula to avoid burning.", step_group:"B"},
+        {text:"Transfer caramelized onions to a sheet tray to cool.", step_group:"B"}
+      ]
+    },
+
+    {
+      slug:"cauliflower-flour", name:"Cauliflower Flour", concept:"Eureka", type:"prep",
+      yield_1x:"2 qts", yield_2x:"4 qts", prep_time:"", shelf_life:"7 days",
+      note:"QCP — Blend dried shiitake mushrooms in the Vitamix on high speed until it is a fine flour.",
+      ingredients:[
+        {ingredient:"AP Flour",                qty_1x:"4",   qty_2x:"8", uom:"cup"},
+        {ingredient:"Potato Starch",           qty_1x:"2",   qty_2x:"4", uom:"cup"},
+        {ingredient:"Corn Starch",             qty_1x:"2",   qty_2x:"4", uom:"cup"},
+        {ingredient:"Shiitake Mushroom Powder",qty_1x:"0.5", qty_2x:"1", uom:"cup"},
+        {ingredient:"Kosher Salt",             qty_1x:"3",   qty_2x:"6", uom:"tbsp"},
+        {ingredient:"Garlic Powder",           qty_1x:"4",   qty_2x:"8", uom:"tsp"},
+        {ingredient:"Onion Powder",            qty_1x:"2",   qty_2x:"4", uom:"tsp"},
+        {ingredient:"White Pepper",            qty_1x:"2",   qty_2x:"4", uom:"tsp"},
+        {ingredient:"Smoked Paprika",          qty_1x:"2",   qty_2x:"4", uom:"tsp"}
+      ],
+      steps:[
+        {text:"Add all of the ingredients to a medium mixing bowl and whisk until well combined."},
+        {text:"Store in a sealed cambro until needed on the line."}
+      ]
+    },
+
+    {
+      slug:"chicken-brine", name:"Chicken Brine", concept:"Eureka", type:"prep",
+      yield_1x:"5 gal", yield_2x:"10 gal", prep_time:"20 min.", shelf_life:"5 days",
+      note:"",
+      ingredients:[
+        {ingredient:"Water",                 qty_1x:"2.5", qty_2x:"5",  uom:"gal"},
+        {ingredient:"Lemons, cut in half",   qty_1x:"12",  qty_2x:"24", uom:"ea"},
+        {ingredient:"Bay Leaves",            qty_1x:"15",  qty_2x:"30", uom:"ea"},
+        {ingredient:"Honey",                 qty_1x:"1",   qty_2x:"2",  uom:"cup"},
+        {ingredient:"Garlic Cloves, Smashed",qty_1x:"1",   qty_2x:"2",  uom:"cup"},
+        {ingredient:"Kosher Salt",           qty_1x:"1.5", qty_2x:"3",  uom:"cup"},
+        {ingredient:"Ice",                   qty_1x:"2.5", qty_2x:"5",  uom:"gal"}
+      ],
+      steps:[
+        {text:"Place all ingredients into a large stock pot except the ice."},
+        {text:"Bring the stock pot up to a rolling boil, then turn off."},
+        {text:"Add the ice and allow the brine to fully cool to below 40°."},
+        {text:"Strain all ingredients out of the brine — it is now ready to be used for the chicken."}
+      ]
+    },
+
+    {
+      slug:"chicken-strips", name:"Chicken Strips", concept:"Eureka", type:"prep",
+      yield_1x:"20 ea", yield_2x:"40 ea", prep_time:"", shelf_life:"3 days",
+      note:"",
+      ingredients:[
+        {ingredient:"PREP Brined Chicken", qty_1x:"5", qty_2x:"10", uom:"ea", ref:"chicken-brine"}
+      ],
+      steps:[
+        {text:"Cut each chicken breast into 4 equal pieces."},
+        {text:"Transfer to a labeled container and store in the walk-in until needed on the line."}
+      ]
+    }
+  ];
+  /* RECIPES:END */
+
+  /* ==========================================================================
+     RENDERER  —  builds the rolodex nav + every recipe page from RECIPES.
+     Navigation itself is pure CSS :target, exactly like the original.
+     ========================================================================== */
+  const PAIRS = [["a","b"],["c","d"],["e","f"],["g","h"],["i","j"],["k","l"],
+                 ["m","n"],["o","p"],["q","r"],["s","t"],["u","v"],["w","x","y","z"]];
+  const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const groupIdFor = letter => { for(const p of PAIRS) if(p.includes(letter)) return "grp-"+p.join("-"); return "grp-w-x-y-z"; };
+  const firstLetter = name => (name.trim()[0]||"#").toLowerCase();
+
+  function recipeTable(r){
+    const ings = r.ingredients||[], steps = r.steps||[];
+    const isPrep = r.type==="prep";
+    const aligned = ings.some(i=>i.step_group) && steps.some(s=>s.step_group);
+
+    // header
+    let head = `<thead><tr>
+        <th>INGREDIENTS</th>
+        ${isPrep ? `<th class="batch" colspan="2">QUANTITY</th><th class="batch">UOM</th>`
+                 : `<th class="batch">QTY</th><th class="batch">UOM</th>`}
+        <th>PROCEDURES</th></tr>`;
+    if(isPrep) head += `<tr class="sub"><th></th>`+
+      `<th><span class="bx">1x</span>${r.yield_1x?`<span class="yld">${esc(r.yield_1x)}</span>`:""}</th>`+
+      `<th><span class="bx">2x</span>${r.yield_2x?`<span class="yld">${esc(r.yield_2x)}</span>`:""}</th>`+
+      `<th></th><th></th></tr>`;
+    head += `</thead>`;
+
+    // body
+    const stepsHtml = (arr,start)=>`<ol${start>1?` start="${start}"`:""}>`+
+        arr.map(s=>`<li>${esc(s.text)}</li>`).join("")+`</ol>`;
+    const qtyCells = i => isPrep
+        ? `<td class="qty">${esc(i.qty_1x)}</td><td class="qty">${esc(i.qty_2x)}</td><td class="uom">${esc(i.uom)}</td>`
+        : `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom)}</td>`;
+
+    let body = "<tbody>";
+    if(aligned){
+      // group ingredient rows by step_group; procedures span each group, numbering continues
+      const order=[]; const map={};
+      ings.forEach(i=>{ const g=i.step_group||"_"; if(!map[g]){map[g]=[];order.push(g);} map[g].push(i); });
+      let n=1;
+      order.forEach(g=>{
+        const rows=map[g]; const gsteps=steps.filter(s=>(s.step_group||"_")===g);
+        rows.forEach((i,idx)=>{
+          body += `<tr><td class="ing">${esc(i.ingredient)}</td>${qtyCells(i)}`;
+          if(idx===0) body += `<td class="proc" rowspan="${rows.length}">${stepsHtml(gsteps,n)}</td>`;
+          body += `</tr>`;
+        });
+        n += gsteps.length;
+      });
+    } else {
+      // flat: one procedures cell spanning all ingredient rows
+      ings.forEach((i,idx)=>{
+        body += `<tr><td class="ing">${esc(i.ingredient)}</td>${qtyCells(i)}`;
+        if(idx===0) body += `<td class="proc" rowspan="${ings.length}">${stepsHtml(steps,1)}</td>`;
+        body += `</tr>`;
+      });
+    }
+    body += "</tbody>";
+    return `<table>${head}${body}</table>`;
+  }
+
+  function recipePage(r){
+    const isPrep = r.type==="prep";
+    let meta = "";
+    if(isPrep){
+      const yieldVal = `<span class="tag">1x:</span> ${esc(r.yield_1x)}` +
+                       (r.yield_2x?`&nbsp;&nbsp;<span class="tag">2x:</span> ${esc(r.yield_2x)}`:"");
+      meta = `<div class="meta">
+        ${r.prep_time?`<div class="lbl">Est. Prep Time</div><div class="val">${esc(r.prep_time)}</div>`:""}
+        <div class="lbl">Shelf Life</div><div class="val">${esc(r.shelf_life)}</div>
+        <div class="lbl">Yield</div><div class="val">${yieldVal}</div>
+      </div>`;
+    }
+    const plate = (!isPrep && r.plate)?`<div class="plate">Plate: ${esc(r.plate)}</div>`:"";
+    const img   = (!isPrep && r.image_url)?`<img class="dish-img" src="${esc(r.image_url)}" alt="${esc(r.name)}" />`:"";
+    const note  = r.note?`<div class="note"><h3>Note:</h3>${r.note.split("\n").map(l=>`<p>${esc(l)}</p>`).join("")}</div>`:"";
+
+    return `<article class="recipe" id="r-${esc(r.slug)}">
+      <div class="rhead"><h1>${esc(r.name)}</h1>
+        <a class="back" href="#${groupIdFor(firstLetter(r.name))}">‹ list</a></div>
+      ${plate}${meta}${note}${img}
+      ${recipeTable(r)}
+    </article>`;
+  }
+
+  function build(){
+    // sort recipes alphabetically by name
+    const recipes = [...RECIPES].sort((a,b)=>a.name.localeCompare(b.name));
+
+    // ---- A–Z nav ----
+    const az = document.getElementById("az");
+    az.innerHTML =
+      PAIRS.map(p=>`<a href="#grp-${p.join("-")}">${p.map(l=>l.toUpperCase()).join("&nbsp;&nbsp;")}</a>`).join("") +
+      `<div class="brand"><svg viewBox="0 0 800 193" xmlns="http://www.w3.org/2000/svg" aria-label="Eureka">
+        <path d="M137.76 34.4489H39.4751V73.9495H129.697V106.263H39.4751V154.097H142.295V187.542H1.54761V1.50791H137.76V34.4489Z" fill="#fff"/>
+        <path d="M186.071 49.9693V132.89C186.071 140.716 186.991 146.607 188.828 150.566C192.09 157.546 198.483 161.036 208.012 161.036C220.213 161.036 228.572 156.076 233.089 146.143C235.426 140.757 236.599 133.649 236.599 124.814V49.9693H273.014V187.542H238.113V168.106C237.778 168.526 236.936 169.786 235.599 171.89C234.257 173.993 232.669 175.847 230.825 177.441C225.214 182.494 219.787 185.947 214.554 187.792C209.317 189.644 203.179 190.57 196.146 190.57C175.872 190.57 162.219 183.254 155.181 168.611C151.245 160.533 149.279 148.629 149.279 132.89V49.9693H186.071Z" fill="#fff"/>
+        <path d="M359.699 46.7531C360.16 46.7968 361.192 46.8588 362.786 46.9438V83.7953C360.518 83.5449 358.504 83.3771 356.74 83.2921C354.973 83.2071 353.544 83.1635 352.452 83.1635C338.005 83.1635 328.302 87.8782 323.347 97.303C320.574 102.604 319.188 110.765 319.188 121.784V187.542H283.023V49.9698H317.301V73.95C322.845 64.7802 327.676 58.5123 331.791 55.1463C338.51 49.5102 347.245 46.6888 357.999 46.6888C358.669 46.6888 359.235 46.7117 359.699 46.7531Z" fill="#fff"/>
+        <path d="M406.703 83.8293C401.626 89.0702 398.44 96.1698 397.137 105.128H459.001C458.354 95.5794 455.168 88.335 449.436 83.3905C443.715 78.446 436.613 75.9692 428.141 75.9692C418.918 75.9692 411.779 78.5954 406.703 83.8293ZM460.426 52.7609C470.01 57.0575 477.919 63.84 484.161 73.1063C489.788 81.2859 493.435 90.7612 495.107 101.553C496.069 107.872 496.461 116.972 496.291 128.851H396.251C396.813 142.658 401.601 152.324 410.616 157.879C416.103 161.335 422.703 163.056 430.415 163.056C438.597 163.056 445.245 160.951 450.358 156.749C453.145 154.474 455.611 151.32 457.749 147.283H494.417C493.444 155.444 489.008 163.729 481.103 172.143C468.799 185.517 451.571 192.208 429.426 192.208C411.148 192.208 395.022 186.567 381.05 175.288C367.078 164.002 360.09 145.644 360.09 120.205C360.09 96.3766 366.396 78.1037 379.01 65.3863C391.625 52.6713 407.996 46.3092 428.128 46.3092C440.081 46.3092 450.849 48.4598 460.426 52.7609Z" fill="#fff"/>
+        <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
+        <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
+        <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
+      </svg></div>`;
+
+    // ---- list panes (one per letter pair) ----
+    const stage = document.getElementById("stage");
+    let html = "";
+    PAIRS.forEach(pair=>{
+      const inGroup = recipes.filter(r=>pair.includes(firstLetter(r.name)));
+      let inner = "";
+      pair.forEach(letter=>{
+        const forLetter = inGroup.filter(r=>firstLetter(r.name)===letter);
+        if(forLetter.length){
+          inner += `<div class="letter">${letter.toUpperCase()}</div>`;
+          inner += forLetter.map(r=>`<a href="#r-${esc(r.slug)}">${esc(r.name)}</a>`).join("");
+        }
+      });
+      html += `<section class="list" id="grp-${pair.join("-")}">${inner||""}</section>`;
+    });
+
+    // ---- recipe pages ----
+    html += recipes.map(recipePage).join("");
+    stage.insertAdjacentHTML("beforeend", html);
+
+    // ---- default view: first populated letter group ----
+    if(!location.hash){
+      const firstWithRecipes = PAIRS.find(p=>recipes.some(r=>p.includes(firstLetter(r.name))));
+      if(firstWithRecipes) location.hash = "grp-"+firstWithRecipes.join("-");
+    }
+  }
+  build();
+  </script>
+</body>
+</html>
