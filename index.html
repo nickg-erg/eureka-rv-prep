@@ -178,7 +178,8 @@
 
       table{max-width:100%;}
       tbody td{font-size:.92rem;padding:.4rem .5rem;}
-      td.proc{display:none;}            /* procedures leave the table... */
+      td.ing{min-width:0;}
+      td.proc,th.proc-h{display:none;}  /* whole procedures column leaves the table... */
       .proc-block{display:block;margin-top:1rem;background:#f3f1ee;
         border:1px solid #d9d6d2;padding:.75rem .85rem;}   /* ...and appear here */
       .proc-block h3{margin:0 0 .45rem;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;
@@ -326,11 +327,11 @@
         <th>INGREDIENTS</th>
         ${isPrep ? `<th class="batch" colspan="2">QUANTITY</th><th class="batch">UOM</th>`
                  : `<th class="batch">QTY</th><th class="batch">UOM</th>`}
-        <th>PROCEDURES</th></tr>`;
+        <th class="proc-h">PROCEDURES</th></tr>`;
     if(isPrep) head += `<tr class="sub"><th></th>`+
       `<th><span class="bx">1x</span>${r.yield_1x?`<span class="yld">${esc(r.yield_1x)}</span>`:""}</th>`+
       `<th><span class="bx">2x</span>${r.yield_2x?`<span class="yld">${esc(r.yield_2x)}</span>`:""}</th>`+
-      `<th></th><th></th></tr>`;
+      `<th></th><th class="proc-h"></th></tr>`;
     head += `</thead>`;
 
     // body
