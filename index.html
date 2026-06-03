@@ -184,107 +184,342 @@
      ========================================================================== */
   /* RECIPES:START — Make regenerates everything between these two markers from the Google Sheet. */
   const RECIPES = [
-    {
-      slug:"black-garlic-aioli", name:"Black Garlic Aioli", concept:"Eureka", type:"prep",
-      yield_1x:"5 cups", yield_2x:"10 cups", prep_time:"", shelf_life:"5 days",
-      note:"",
-      ingredients:[
-        {ingredient:"Mayonnaise",          qty_1x:"4",  qty_2x:"8",  uom:"cup"},
-        {ingredient:"Black Garlic",        qty_1x:"12", qty_2x:"24", uom:"ea"},
-        {ingredient:"Garlic, Fresh Minced",qty_1x:"4",  qty_2x:"8",  uom:"tbsp"},
-        {ingredient:"Lemon Juice",         qty_1x:"2",  qty_2x:"4",  uom:"oz-fl"},
-        {ingredient:"Rice Vinegar",        qty_1x:"4",  qty_2x:"8",  uom:"tsp"},
-        {ingredient:"Soy Sauce",           qty_1x:"4",  qty_2x:"8",  uom:"tsp"},
-        {ingredient:"Dijon Mustard",       qty_1x:"2",  qty_2x:"4",  uom:"tsp"},
-        {ingredient:"Honey",               qty_1x:"2",  qty_2x:"4",  uom:"tsp"},
-        {ingredient:"Kosher Salt",         qty_1x:"1",  qty_2x:"2",  uom:"tsp"},
-        {ingredient:"Lime Juice",          qty_1x:"2",  qty_2x:"4",  uom:"tsp"}
-      ],
-      steps:[
-        {text:"Process mayonnaise, black garlic, and garlic in robot coupe until smooth."},
-        {text:"Add the remaining ingredients and pulse until thoroughly combined."},
-        {text:"Transfer to a labeled container and store in the walk-in until needed on the line."}
-      ]
-    },
-
-    /* ---- STACKED recipe reused to demo the NOTE box + OPTIONAL step alignment ---- */
-    {
-      slug:"caramelized-onions", name:"Caramelized Onions", concept:"Eureka", type:"prep",
-      yield_1x:"1.5 lb", yield_2x:"3 lb", prep_time:"10 min.", shelf_life:"3 days",
-      note:"Once onions are done, remove from heat and place on sheet tray to cool.\nDo not leave pot on stove as the pilot light will continue to cook and the onions will turn to mush.",
-      ingredients:[
-        {ingredient:"Yellow Onions, sliced 1/4\" then cut to 1\"", qty_1x:"2", qty_2x:"4", uom:"lbs", step_group:"A"},
-        {ingredient:"Phase Butter",     qty_1x:"2", qty_2x:"4", uom:"oz",   step_group:"A"},
-        {ingredient:"Kosher Salt",      qty_1x:"1", qty_2x:"2", uom:"tsp",  step_group:"A"},
-        {ingredient:"Black Pepper",     qty_1x:"1", qty_2x:"2", uom:"tsp",  step_group:"A"},
-        {ingredient:"Granulated Sugar", qty_1x:"1", qty_2x:"2", uom:"tbsp", step_group:"B"},
-        {ingredient:"Maple Syrup",      qty_1x:"1", qty_2x:"2", uom:"tbsp", step_group:"B"}
-      ],
-      steps:[
-        {text:"In large container coat onions with phase butter. Sprinkle kosher salt, black pepper and mix.", step_group:"A"},
-        {text:"Pre-heat flat top to 400°. Place onions on hot flat top and distribute evenly. Sautée 2 minutes, flip, and sautée another 2 minutes, mixing with two metal spatulas to bring onions from the middle to the surface.", step_group:"A"},
-        {text:"Distribute onions on the flat top again and sautée for another 2 minutes.", step_group:"A"},
-        {text:"With both spatulas, transfer the sautéed onions to a large aluminum pot.", step_group:"A"},
-        {text:"Place pot on a stove burner on high flame. Add sugar and syrup, toss well to coat. Caramelize for 2 minutes, flipping with a spatula to avoid burning.", step_group:"B"},
-        {text:"Transfer caramelized onions to a sheet tray to cool.", step_group:"B"}
-      ]
-    },
-
-    {
-      slug:"cauliflower-flour", name:"Cauliflower Flour", concept:"Eureka", type:"prep",
-      yield_1x:"2 qts", yield_2x:"4 qts", prep_time:"", shelf_life:"7 days",
-      note:"QCP — Blend dried shiitake mushrooms in the Vitamix on high speed until it is a fine flour.",
-      ingredients:[
-        {ingredient:"AP Flour",                qty_1x:"4",   qty_2x:"8", uom:"cup"},
-        {ingredient:"Potato Starch",           qty_1x:"2",   qty_2x:"4", uom:"cup"},
-        {ingredient:"Corn Starch",             qty_1x:"2",   qty_2x:"4", uom:"cup"},
-        {ingredient:"Shiitake Mushroom Powder",qty_1x:"0.5", qty_2x:"1", uom:"cup"},
-        {ingredient:"Kosher Salt",             qty_1x:"3",   qty_2x:"6", uom:"tbsp"},
-        {ingredient:"Garlic Powder",           qty_1x:"4",   qty_2x:"8", uom:"tsp"},
-        {ingredient:"Onion Powder",            qty_1x:"2",   qty_2x:"4", uom:"tsp"},
-        {ingredient:"White Pepper",            qty_1x:"2",   qty_2x:"4", uom:"tsp"},
-        {ingredient:"Smoked Paprika",          qty_1x:"2",   qty_2x:"4", uom:"tsp"}
-      ],
-      steps:[
-        {text:"Add all of the ingredients to a medium mixing bowl and whisk until well combined."},
-        {text:"Store in a sealed cambro until needed on the line."}
-      ]
-    },
-
-    {
-      slug:"chicken-brine", name:"Chicken Brine", concept:"Eureka", type:"prep",
-      yield_1x:"5 gal", yield_2x:"10 gal", prep_time:"20 min.", shelf_life:"5 days",
-      note:"",
-      ingredients:[
-        {ingredient:"Water",                 qty_1x:"2.5", qty_2x:"5",  uom:"gal"},
-        {ingredient:"Lemons, cut in half",   qty_1x:"12",  qty_2x:"24", uom:"ea"},
-        {ingredient:"Bay Leaves",            qty_1x:"15",  qty_2x:"30", uom:"ea"},
-        {ingredient:"Honey",                 qty_1x:"1",   qty_2x:"2",  uom:"cup"},
-        {ingredient:"Garlic Cloves, Smashed",qty_1x:"1",   qty_2x:"2",  uom:"cup"},
-        {ingredient:"Kosher Salt",           qty_1x:"1.5", qty_2x:"3",  uom:"cup"},
-        {ingredient:"Ice",                   qty_1x:"2.5", qty_2x:"5",  uom:"gal"}
-      ],
-      steps:[
-        {text:"Place all ingredients into a large stock pot except the ice."},
-        {text:"Bring the stock pot up to a rolling boil, then turn off."},
-        {text:"Add the ice and allow the brine to fully cool to below 40°."},
-        {text:"Strain all ingredients out of the brine — it is now ready to be used for the chicken."}
-      ]
-    },
-
-    {
-      slug:"chicken-strips", name:"Chicken Strips", concept:"Eureka", type:"prep",
-      yield_1x:"20 ea", yield_2x:"40 ea", prep_time:"", shelf_life:"3 days",
-      note:"",
-      ingredients:[
-        {ingredient:"PREP Brined Chicken", qty_1x:"5", qty_2x:"10", uom:"ea", ref:"chicken-brine"}
-      ],
-      steps:[
-        {text:"Cut each chicken breast into 4 equal pieces."},
-        {text:"Transfer to a labeled container and store in the walk-in until needed on the line."}
-      ]
-    }
-  ];
+  {
+    "slug": "black-garlic-aioli",
+    "name": "Black Garlic Aioli",
+    "concept": "Eureka",
+    "type": "prep",
+    "yield_1x": "5 cups",
+    "yield_2x": "10 cups",
+    "shelf_life": "5 days",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "Mayonnaise",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Black Garlic",
+        "qty_1x": "12",
+        "qty_2x": "24",
+        "uom": "ea"
+      },
+      {
+        "ingredient": "Garlic, Fresh Minced",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "tbsp"
+      },
+      {
+        "ingredient": "Lemon Juice",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "oz-fl"
+      },
+      {
+        "ingredient": "Rice Vinegar",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Soy Sauce",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Dijon Mustard",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Honey",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Kosher Salt",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Lime Juice",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      }
+    ],
+    "steps": [
+      {
+        "text": "Process mayonnaise, black garlic, and garlic in robot coupe until smooth."
+      },
+      {
+        "text": "Add the remaining ingredients and pulse until thoroughly combined."
+      },
+      {
+        "text": "Transfer to a labeled container and store in the walk-in until needed on the line."
+      }
+    ]
+  },
+  {
+    "slug": "caramelized-onions",
+    "name": "Caramelized Onions",
+    "concept": "Eureka",
+    "type": "prep",
+    "yield_1x": "1.5 lb",
+    "yield_2x": "3 lb",
+    "prep_time": "10 min.",
+    "shelf_life": "3 days",
+    "note": "Once onions are done, remove from heat and place on sheet tray to cool.\nDo not leave pot on stove as the pilot light will continue to cook and the onions will turn to mush.",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "Yellow Onions, sliced 1/4\" then cut to 1\"",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "lbs",
+        "step_group": "A"
+      },
+      {
+        "ingredient": "Phase Butter",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "oz",
+        "step_group": "A"
+      },
+      {
+        "ingredient": "Kosher Salt",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "tsp",
+        "step_group": "A"
+      },
+      {
+        "ingredient": "Black Pepper",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "tsp",
+        "step_group": "A"
+      },
+      {
+        "ingredient": "Granulated Sugar",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "tbsp",
+        "step_group": "B"
+      },
+      {
+        "ingredient": "Maple Syrup",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "tbsp",
+        "step_group": "B"
+      }
+    ],
+    "steps": [
+      {
+        "text": "In large container coat onions with phase butter. Sprinkle kosher salt, black pepper and mix.",
+        "step_group": "A"
+      },
+      {
+        "text": "Pre-heat flat top to 400°. Place onions on hot flat top and distribute evenly. Sautée 2 minutes, flip, and sautée another 2 minutes, mixing with two metal spatulas to bring onions from the middle to the surface.",
+        "step_group": "A"
+      },
+      {
+        "text": "Distribute onions on the flat top again and sautée for another 2 minutes.",
+        "step_group": "A"
+      },
+      {
+        "text": "With both spatulas, transfer the sautéed onions to a large aluminum pot.",
+        "step_group": "A"
+      },
+      {
+        "text": "Place pot on a stove burner on high flame. Add sugar and syrup, toss well to coat. Caramelize for 2 minutes, flipping with a spatula to avoid burning.",
+        "step_group": "B"
+      },
+      {
+        "text": "Transfer caramelized onions to a sheet tray to cool.",
+        "step_group": "B"
+      }
+    ]
+  },
+  {
+    "slug": "cauliflower-flour",
+    "name": "Cauliflower Flour",
+    "concept": "Eureka",
+    "type": "prep",
+    "yield_1x": "2 qts",
+    "yield_2x": "4 qts",
+    "shelf_life": "7 days",
+    "note": "QCP — Blend dried shiitake mushrooms in the Vitamix on high speed until it is a fine flour.",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "AP Flour",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Potato Starch",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Corn Starch",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Shiitake Mushroom Powder",
+        "qty_1x": "0.5",
+        "qty_2x": "1",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Kosher Salt",
+        "qty_1x": "3",
+        "qty_2x": "6",
+        "uom": "tbsp"
+      },
+      {
+        "ingredient": "Garlic Powder",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Onion Powder",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "White Pepper",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      },
+      {
+        "ingredient": "Smoked Paprika",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "tsp"
+      }
+    ],
+    "steps": [
+      {
+        "text": "Add all of the ingredients to a medium mixing bowl and whisk until well combined."
+      },
+      {
+        "text": "Store in a sealed cambro until needed on the line."
+      }
+    ]
+  },
+  {
+    "slug": "chicken-brine",
+    "name": "Chicken Brine",
+    "concept": "Eureka",
+    "type": "prep",
+    "yield_1x": "5 gal",
+    "yield_2x": "10 gal",
+    "prep_time": "20 min.",
+    "shelf_life": "5 days",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "Water",
+        "qty_1x": "2.5",
+        "qty_2x": "5",
+        "uom": "gal"
+      },
+      {
+        "ingredient": "Lemons, cut in half",
+        "qty_1x": "12",
+        "qty_2x": "24",
+        "uom": "ea"
+      },
+      {
+        "ingredient": "Bay Leaves",
+        "qty_1x": "15",
+        "qty_2x": "30",
+        "uom": "ea"
+      },
+      {
+        "ingredient": "Honey",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Garlic Cloves, Smashed",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Kosher Salt",
+        "qty_1x": "1.5",
+        "qty_2x": "3",
+        "uom": "cup"
+      },
+      {
+        "ingredient": "Ice",
+        "qty_1x": "2.5",
+        "qty_2x": "5",
+        "uom": "gal"
+      }
+    ],
+    "steps": [
+      {
+        "text": "Place all ingredients into a large stock pot except the ice."
+      },
+      {
+        "text": "Bring the stock pot up to a rolling boil, then turn off."
+      },
+      {
+        "text": "Add the ice and allow the brine to fully cool to below 40°."
+      },
+      {
+        "text": "Strain all ingredients out of the brine — it is now ready to be used for the chicken."
+      }
+    ]
+  },
+  {
+    "slug": "chicken-strips",
+    "name": "Chicken Strips",
+    "concept": "Eureka",
+    "type": "prep",
+    "yield_1x": "20 ea",
+    "yield_2x": "40 ea",
+    "shelf_life": "3 days",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "PREP Brined Chicken",
+        "qty_1x": "5",
+        "qty_2x": "10",
+        "uom": "ea"
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cut each chicken breast into 4 equal pieces."
+      },
+      {
+        "text": "Transfer to a labeled container and store in the walk-in until needed on the line."
+      }
+    ]
+  }
+];
   /* RECIPES:END */
 
   /* ==========================================================================
