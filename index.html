@@ -20,7 +20,7 @@
       --note:#e2e0dc;
       --text:#171717;
       --text-soft:#565656;
-      --nav-w:13rem;
+      --nav-w:17rem;
 
       --mono:"Menlo","SF Mono","Roboto Mono","Consolas",monospace;
       --display:Helvetica,"Helvetica Neue",Arial,sans-serif;
@@ -43,60 +43,83 @@
       height:100dvh;
     }
 
-    /* ============================ A–Z ROLODEX ============================ */
+    /* ============================ LEFT NAV ============================ */
     .az{
       background:var(--ink);
       display:flex;flex-direction:column;
-      height:100dvh;
+      height:100dvh;min-height:0;
       user-select:none;
     }
-    .az a{
-      flex:1 1 0;
-      display:flex;align-items:center;justify-content:center;gap:1.1rem;
-      color:#fff;text-decoration:none;
-      font-family:var(--mono);
-      font-size:1.6rem;letter-spacing:.05em;text-transform:uppercase;
-      border-bottom:1px solid #3a3a3a;
-      transition:background .12s ease;
-    }
-    .az a:nth-child(2n){background:var(--ink-2);}
-    .az a:active{background:var(--eureka-orange);}
     .az .brand{
       flex:0 0 auto;
-      padding:1.1rem 1rem 1.3rem;
+      padding:1rem 1rem .9rem;
       background:var(--ink);
       display:flex;align-items:center;
+      border-bottom:1px solid #3a3a3a;
     }
     .az .brand svg{width:100%;height:auto;max-width:8.5rem;display:block;}
+
+    /* A–Z jump strip (buttons; JS scrolls the list, no hash change) */
+    .letterbar{
+      flex:0 0 auto;
+      display:grid;grid-template-columns:repeat(7,1fr);
+      gap:1px;background:#3a3a3a;border-bottom:1px solid #3a3a3a;
+    }
+    .letterbar button{
+      appearance:none;-webkit-appearance:none;border:0;cursor:pointer;
+      background:var(--ink-2);color:#fff;
+      font-family:var(--mono);font-size:.92rem;line-height:1;
+      padding:.5rem 0;text-transform:uppercase;
+      transition:background .12s ease;
+    }
+    .letterbar button:hover{background:#333;}
+    .letterbar button:active{background:var(--eureka-orange);}
+    .letterbar button.empty{color:#5a5a5a;background:var(--ink);cursor:default;}
+
+    /* scrolling recipe-link list */
+    .navlist{
+      flex:1 1 auto;min-height:0;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
+      padding:0 0 2rem;
+    }
+    .navletter{
+      position:sticky;top:0;z-index:1;
+      background:var(--eureka-orange);color:#fff;
+      font-family:var(--mono);font-weight:700;font-size:.82rem;
+      letter-spacing:.12em;text-transform:uppercase;
+      padding:.22rem .9rem;scroll-margin-top:0;
+    }
+    .navlist a{
+      display:block;color:#e9e9e9;text-decoration:none;
+      font-family:var(--display);font-size:1rem;line-height:1.25;
+      padding:.5rem .9rem;border-bottom:1px solid #262626;
+      transition:background .1s ease,color .1s ease;
+    }
+    .navlist a:hover{background:var(--ink-2);}
+    .navlist a:active,.navlist a.current{background:var(--eureka-orange);color:#fff;}
 
     /* ============================== STAGE =============================== */
     .stage{position:relative;height:100dvh;overflow:hidden;}
 
-    /* both list-panes and recipe-pages live here, shown via :target */
-    .list,.recipe{
+    /* recipe pages live in the stage, shown via :target */
+    .recipe{
       position:absolute;inset:0;
-      display:none;
+      display:none;background:var(--paper);
       overflow-y:auto;-webkit-overflow-scrolling:touch;
     }
-    .list:target{display:flex;flex-direction:column;}
     .recipe:target{display:block;}
 
-    /* ----- letter list pane ----- */
-    .list{padding:1rem 1.25rem 3rem;}
-    .letter{
-      font-family:var(--display);font-weight:900;text-transform:uppercase;
-      font-size:1.4rem;margin:1.1rem 0 .35rem;
-      border-left:4px solid var(--eureka-orange);padding-left:.5rem;
+    /* empty state before a recipe is picked */
+    .placeholder{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      padding:2rem;text-align:center;
+      color:var(--text-soft);font-size:1.2rem;
     }
-    .letter:first-child{margin-top:.25rem;}
-    .list a{
-      display:block;width:fit-content;
-      background:var(--card);color:var(--ink);text-decoration:none;
-      border:1px solid #c9c9c9;border-left:3px solid var(--ink);
-      font-size:1.35rem;padding:.7rem 1rem;margin:.4rem 0;
-      transition:border-color .12s ease,transform .06s ease;
-    }
-    .list a:active{border-left-color:var(--eureka-orange);transform:translateX(2px);}
+    .stage:has(.recipe:target) .placeholder{display:none;}
+
+    /* mobile-only floating back-to-list (hidden on desktop) */
+    .totop{display:none;}
 
     /* ----- recipe page ----- */
     .recipe{padding:1.1rem 1.4rem 3rem;}
@@ -150,26 +173,27 @@
 
     /* ============================ iPad mini landscape ============================ */
     @media (max-width:1100px){
-      :root{--nav-w:11rem;}
-      .az a{font-size:1.35rem;gap:.7rem;}
+      :root{--nav-w:14rem;}
+      .letterbar button{font-size:.82rem;padding:.45rem 0;}
+      .navlist a{font-size:.95rem;}
       .rhead h1{font-size:2rem;}
       tbody td{font-size:.95rem;}
     }
-    /* ===== phone: full-height rolodex on top, document scrolls, tap jumps down ===== */
+    /* ===== phone: full nav list on top, document scrolls, tap a recipe to jump down ===== */
     @media (max-width:560px){
       html,body{height:auto;overflow:visible;}
       .app{display:block;height:auto;}
 
-      /* rolodex fills the screen on load; content lives below it */
-      .az{position:static;width:100%;height:100dvh;flex-direction:column;}
-      .az a{font-size:1.5rem;}
-      .az .brand{padding:1rem;}
-      .az .brand svg{max-width:7rem;}
+      .az{position:static;width:100%;height:auto;}
+      .navlist{flex:none;height:auto;overflow:visible;
+        min-height:calc(100dvh - 9rem);}      /* list fills the first screen on load */
+      .navlist a{font-size:1.1rem;padding:.65rem .9rem;}
+      .letterbar button{font-size:1rem;padding:.55rem 0;}
 
       .stage{position:static;height:auto;overflow:visible;display:block;}
-      .list,.recipe{position:static;}
-      .list{padding:1rem 1rem 2.5rem;}
-      .recipe{padding:1rem 1rem 2.5rem;}
+      .recipe{position:static;}
+      .recipe{padding:1rem 1rem 4rem;}
+      .placeholder{display:none;}            /* no empty state on phone — the nav is the screen */
       .rhead h1{font-size:1.7rem;}
 
       .meta{gap:.4rem .9rem;margin:.2rem 0 1rem;}
@@ -179,22 +203,35 @@
       table{max-width:100%;}
       tbody td{font-size:.92rem;padding:.4rem .5rem;}
       td.ing{min-width:0;}
-      td.proc,th.proc-h{display:none;}  /* whole procedures column leaves the table... */
+      td.proc,th.proc-h{display:none;}       /* whole procedures column leaves the table... */
       .proc-block{display:block;margin-top:1rem;background:#f3f1ee;
-        border:1px solid #d9d6d2;padding:.75rem .85rem;}   /* ...and appear here */
+        border:1px solid #d9d6d2;padding:.75rem .85rem;}   /* ...and appears here */
       .proc-block h3{margin:0 0 .45rem;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;
         border-left:4px solid var(--eureka-orange);padding-left:.5rem;}
       .proc-block ol{margin:0;padding-left:1.4rem;}
       .proc-block li{line-height:1.42;}
       .proc-block li+li{margin-top:.6rem;}
+
+      /* floating "back to list" — plain anchor, always available on phone */
+      .totop{
+        display:flex;align-items:center;gap:.35rem;
+        position:fixed;right:.85rem;bottom:.85rem;z-index:50;
+        background:var(--eureka-orange);color:#fff;text-decoration:none;
+        font-family:var(--display);font-weight:700;font-size:1rem;
+        padding:.7rem 1.05rem;border-radius:999px;
+        box-shadow:0 3px 12px rgba(0,0,0,.32);
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
     <nav class="az" id="az"></nav>
-    <main class="stage" id="stage"></main>
+    <main class="stage" id="stage">
+      <div class="placeholder">‹ Pick a recipe from the list</div>
+    </main>
   </div>
+  <a class="totop" href="#nav-top">↑ Recipes</a>
 
   <script>
   /* ==========================================================================
@@ -5090,8 +5127,7 @@
     const note  = r.note?`<div class="note"><h3>Note:</h3>${r.note.split("\n").map(l=>`<p>${esc(l)}</p>`).join("")}</div>`:"";
 
     return `<article class="recipe" id="r-${esc(r.slug)}">
-      <div class="rhead"><h1>${esc(r.name)}</h1>
-        <a class="back" href="#${groupIdFor(firstLetter(r.name))}">‹ list</a></div>
+      <div class="rhead"><h1>${esc(r.name)}</h1></div>
       ${plate}${meta}${note}${img}
       ${recipeTable(r)}
     </article>`;
@@ -5103,9 +5139,21 @@
 
     // ---- A–Z nav ----
     const az = document.getElementById("az");
+    const present = new Set(recipes.map(r=>firstLetter(r.name)));
+    const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
+    const bar = `<div class="letterbar">` + ALPHA.map(l=>
+        present.has(l) ? `<button data-jump="${l}">${l.toUpperCase()}</button>`
+                       : `<button class="empty" disabled>${l.toUpperCase()}</button>`).join("") + `</div>`;
+    let nlist = `<div class="navlist" id="navlist">`;
+    ALPHA.forEach(l=>{
+      const forLetter = recipes.filter(r=>firstLetter(r.name)===l);
+      if(!forLetter.length) return;
+      nlist += `<div class="navletter" id="nav-${l}">${l.toUpperCase()}</div>` +
+               forLetter.map(r=>`<a href="#r-${esc(r.slug)}" id="lnk-${esc(r.slug)}">${esc(r.name)}</a>`).join("");
+    });
+    nlist += `</div>`;
     az.innerHTML =
-      PAIRS.map(p=>`<a href="#grp-${p.join("-")}">${p.map(l=>l.toUpperCase()).join("&nbsp;&nbsp;")}</a>`).join("") +
-      `<div class="brand"><svg viewBox="0 0 800 193" xmlns="http://www.w3.org/2000/svg" aria-label="Eureka">
+      `<div class="brand" id="nav-top"><svg viewBox="0 0 800 193" xmlns="http://www.w3.org/2000/svg" aria-label="Eureka">
         <path d="M137.76 34.4489H39.4751V73.9495H129.697V106.263H39.4751V154.097H142.295V187.542H1.54761V1.50791H137.76V34.4489Z" fill="#fff"/>
         <path d="M186.071 49.9693V132.89C186.071 140.716 186.991 146.607 188.828 150.566C192.09 157.546 198.483 161.036 208.012 161.036C220.213 161.036 228.572 156.076 233.089 146.143C235.426 140.757 236.599 133.649 236.599 124.814V49.9693H273.014V187.542H238.113V168.106C237.778 168.526 236.936 169.786 235.599 171.89C234.257 173.993 232.669 175.847 230.825 177.441C225.214 182.494 219.787 185.947 214.554 187.792C209.317 189.644 203.179 190.57 196.146 190.57C175.872 190.57 162.219 183.254 155.181 168.611C151.245 160.533 149.279 148.629 149.279 132.89V49.9693H186.071Z" fill="#fff"/>
         <path d="M359.699 46.7531C360.16 46.7968 361.192 46.8588 362.786 46.9438V83.7953C360.518 83.5449 358.504 83.3771 356.74 83.2921C354.973 83.2071 353.544 83.1635 352.452 83.1635C338.005 83.1635 328.302 87.8782 323.347 97.303C320.574 102.604 319.188 110.765 319.188 121.784V187.542H283.023V49.9698H317.301V73.95C322.845 64.7802 327.676 58.5123 331.791 55.1463C338.51 49.5102 347.245 46.6888 357.999 46.6888C358.669 46.6888 359.235 46.7117 359.699 46.7531Z" fill="#fff"/>
@@ -5113,34 +5161,27 @@
         <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
         <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
         <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
-      </svg></div>`;
+      </svg></div>` + bar + nlist;
 
-    // ---- list panes (one per letter pair) ----
+    // ---- recipe pages into the stage (after the placeholder) ----
     const stage = document.getElementById("stage");
-    let html = "";
-    PAIRS.forEach(pair=>{
-      const inGroup = recipes.filter(r=>pair.includes(firstLetter(r.name)));
-      let inner = "";
-      pair.forEach(letter=>{
-        const forLetter = inGroup.filter(r=>firstLetter(r.name)===letter);
-        if(forLetter.length){
-          inner += `<div class="letter">${letter.toUpperCase()}</div>`;
-          inner += forLetter.map(r=>`<a href="#r-${esc(r.slug)}">${esc(r.name)}</a>`).join("");
-        }
-      });
-      html += `<section class="list" id="grp-${pair.join("-")}">${inner||""}</section>`;
+    stage.insertAdjacentHTML("beforeend", recipes.map(recipePage).join(""));
+
+    // ---- letter strip: scroll the rail only; the open recipe (a #r- :target) is left untouched ----
+    document.querySelector(".letterbar").addEventListener("click", e=>{
+      const b = e.target.closest("button[data-jump]"); if(!b) return;
+      const sec = document.getElementById("nav-"+b.dataset.jump);
+      if(sec) sec.scrollIntoView({block:"start"});
     });
 
-    // ---- recipe pages ----
-    html += recipes.map(recipePage).join("");
-    stage.insertAdjacentHTML("beforeend", html);
-
-    // ---- default view: first populated letter group (desktop/tablet only) ----
-    // On phones we leave the full rolodex showing on load, per the scroll-to-navigate model.
-    if(!location.hash && window.matchMedia("(min-width:561px)").matches){
-      const firstWithRecipes = PAIRS.find(p=>recipes.some(r=>p.includes(firstLetter(r.name))));
-      if(firstWithRecipes) location.hash = "grp-"+firstWithRecipes.join("-");
+    // ---- highlight the open recipe in the rail (class only — NO scrolling; that was the old phone bug) ----
+    function syncCurrent(){
+      document.querySelectorAll(".navlist a.current").forEach(a=>a.classList.remove("current"));
+      const m = location.hash.match(/^#r-(.+)$/);
+      if(m){ const a = document.getElementById("lnk-"+m[1]); if(a) a.classList.add("current"); }
     }
+    window.addEventListener("hashchange", syncCurrent);
+    syncCurrent();
   }
   build();
   </script>
