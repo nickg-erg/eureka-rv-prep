@@ -11,6 +11,7 @@
        ========================================================================= */
     :root{
       --eureka-orange:#FF671D;   /* Eureka brand orange */
+      --eureka-blue:#0369A1;     /* complement of the orange — selected/link accent */
       --ink:#161616;
       --ink-2:#202020;
       --ink-3:#3a3a3a;
@@ -96,7 +97,18 @@
       transition:background .1s ease,color .1s ease;
     }
     .navlist a:hover{background:var(--ink-2);}
-    .navlist a:active,.navlist a.current{background:var(--eureka-orange);color:#fff;}
+    .navlist a:active{background:var(--eureka-orange);color:#fff;}
+    .navlist a.current,.navlist a.current:hover{background:var(--eureka-blue);color:#fff;}
+
+    /* category filter chips */
+    .catbar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem .6rem;
+      background:var(--ink);border-bottom:1px solid #3a3a3a;}
+    .catchip{appearance:none;-webkit-appearance:none;border:1px solid #4a4a4a;cursor:pointer;
+      background:transparent;color:#cfcfcf;border-radius:999px;
+      font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;
+      padding:.28rem .6rem;line-height:1;transition:background .12s ease,color .12s ease,border-color .12s ease;}
+    .catchip:hover{background:var(--ink-2);color:#fff;}
+    .catchip.current{background:var(--eureka-orange);border-color:var(--eureka-orange);color:#fff;}
 
     /* ============================== STAGE =============================== */
     .stage{position:relative;height:100dvh;overflow:hidden;}
@@ -142,6 +154,13 @@
       border-left:4px solid var(--eureka-orange);padding-left:.55rem;line-height:1.15;}
     .meta .val{font-family:var(--display);color:var(--text);font-size:1.1rem;line-height:1.15;}
     .meta .val .tag{font-family:var(--mono);color:var(--text-soft);font-size:.92rem;margin-right:.15rem;}
+    .meta .val .ysep{display:inline-block;margin:0 .55rem;color:#c9c4be;font-weight:400;}
+    .catpill{align-self:center;flex:0 0 auto;font-family:var(--mono);font-size:.72rem;
+      text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--ink-2);
+      padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
+    .ilink{color:var(--eureka-blue);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;}
+    .confid{margin-top:2.2rem;padding-top:.75rem;border-top:1px solid #d9d6d2;
+      font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;color:#9a948d;text-transform:uppercase;}
 
     .note{background:var(--note);padding:.6rem .8rem;margin:0 0 1rem;max-width:64rem;}
     .note h3{margin:0 0 .2rem;font-size:1.05rem;}
@@ -605,13 +624,13 @@
       },
       {
         "ingredient": "Whole Grain Mustard",
-        "qty_1x": "0.5",
+        "qty_1x": "Fri Jan 02 2026 00:00:00 GMT-0800 (Pacific Standard Time)",
         "qty_2x": "1",
         "uom": "cup"
       },
       {
         "ingredient": "Water",
-        "qty_1x": "0.5",
+        "qty_1x": "Fri Jan 02 2026 00:00:00 GMT-0800 (Pacific Standard Time)",
         "qty_2x": "1",
         "uom": "cup"
       }
@@ -5057,6 +5076,7 @@
   const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const groupIdFor = letter => { for(const p of PAIRS) if(p.includes(letter)) return "grp-"+p.join("-"); return "grp-w-x-y-z"; };
   const firstLetter = name => (name.trim()[0]||"#").toLowerCase();
+  let SLUGS = new Set();   // recipe slugs, for ingredient→recipe links
 
   function recipeTable(r){
     const ings = r.ingredients||[], steps = r.steps||[];
@@ -5081,6 +5101,11 @@
     const qtyCells = i => isPrep
         ? `<td class="qty">${esc(i.qty_1x)}</td><td class="qty">${esc(i.qty_2x)}</td><td class="uom">${esc(i.uom)}</td>`
         : `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom)}</td>`;
+    const ingCell = i => {
+        const linked = i.links_to && SLUGS.has(i.links_to);
+        const inner = linked ? `<a class="ilink" href="#r-${esc(i.links_to)}">${esc(i.ingredient)}</a>` : esc(i.ingredient);
+        return `<td class="ing">${inner}</td>`;
+    };
 
     let body = "<tbody>";
     if(aligned){
@@ -5091,7 +5116,7 @@
       order.forEach(g=>{
         const rows=map[g]; const gsteps=steps.filter(s=>(s.step_group||"_")===g);
         rows.forEach((i,idx)=>{
-          body += `<tr><td class="ing">${esc(i.ingredient)}</td>${qtyCells(i)}`;
+          body += `<tr>${ingCell(i)}${qtyCells(i)}`;
           if(idx===0) body += `<td class="proc" rowspan="${rows.length}">${stepsHtml(gsteps,n)}</td>`;
           body += `</tr>`;
         });
@@ -5100,7 +5125,7 @@
     } else {
       // flat: one procedures cell spanning all ingredient rows
       ings.forEach((i,idx)=>{
-        body += `<tr><td class="ing">${esc(i.ingredient)}</td>${qtyCells(i)}`;
+        body += `<tr>${ingCell(i)}${qtyCells(i)}`;
         if(idx===0) body += `<td class="proc" rowspan="${ings.length}">${stepsHtml(steps,1)}</td>`;
         body += `</tr>`;
       });
@@ -5115,7 +5140,7 @@
     let meta = "";
     if(isPrep){
       const yieldVal = `<span class="tag">1x:</span> ${esc(r.yield_1x)}` +
-                       (r.yield_2x?`&nbsp;&nbsp;<span class="tag">2x:</span> ${esc(r.yield_2x)}`:"");
+                       (r.yield_2x?`<span class="ysep">|</span><span class="tag">2x:</span> ${esc(r.yield_2x)}`:"");
       meta = `<div class="meta">
         ${r.prep_time?`<div class="lbl">Est. Prep Time</div><div class="val">${esc(r.prep_time)}</div>`:""}
         <div class="lbl">Shelf Life</div><div class="val">${esc(r.shelf_life)}</div>
@@ -5127,9 +5152,10 @@
     const note  = r.note?`<div class="note"><h3>Note:</h3>${r.note.split("\n").map(l=>`<p>${esc(l)}</p>`).join("")}</div>`:"";
 
     return `<article class="recipe" id="r-${esc(r.slug)}">
-      <div class="rhead"><h1>${esc(r.name)}</h1></div>
+      <div class="rhead"><h1>${esc(r.name)}</h1>${r.category?`<span class="catpill">${esc(r.category)}</span>`:""}</div>
       ${plate}${meta}${note}${img}
       ${recipeTable(r)}
+      <p class="confid">CONFIDENTIAL — Property of Eureka Restaurant Group. Internal kitchen use only; not for distribution.</p>
     </article>`;
   }
 
@@ -5141,15 +5167,21 @@
     const az = document.getElementById("az");
     const present = new Set(recipes.map(r=>firstLetter(r.name)));
     const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
+    SLUGS = new Set(recipes.map(r=>r.slug));
     const bar = `<div class="letterbar">` + ALPHA.map(l=>
         present.has(l) ? `<button data-jump="${l}">${l.toUpperCase()}</button>`
                        : `<button class="empty" disabled>${l.toUpperCase()}</button>`).join("") + `</div>`;
+    // category filter chips (from the Recipes-tab category column)
+    const cats = [...new Set(recipes.map(r=>r.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const chips = `<div class="catbar"><button class="catchip current" data-cat="*">All</button>` +
+        cats.map(c=>`<button class="catchip" data-cat="${esc(c)}">${esc(c)}</button>`).join("") + `</div>`;
     let nlist = `<div class="navlist" id="navlist">`;
     ALPHA.forEach(l=>{
       const forLetter = recipes.filter(r=>firstLetter(r.name)===l);
       if(!forLetter.length) return;
-      nlist += `<div class="navletter" id="nav-${l}">${l.toUpperCase()}</div>` +
-               forLetter.map(r=>`<a href="#r-${esc(r.slug)}" id="lnk-${esc(r.slug)}">${esc(r.name)}</a>`).join("");
+      nlist += `<div class="navgroup" id="nav-${l}"><div class="navletter">${l.toUpperCase()}</div>` +
+               forLetter.map(r=>`<a href="#r-${esc(r.slug)}" id="lnk-${esc(r.slug)}" data-cat="${esc(r.category||"")}">${esc(r.name)}</a>`).join("") +
+               `</div>`;
     });
     nlist += `</div>`;
     az.innerHTML =
@@ -5161,7 +5193,7 @@
         <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
         <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
         <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
-      </svg></div>` + bar + nlist;
+      </svg></div>` + chips + bar + nlist;
 
     // ---- recipe pages into the stage (after the placeholder) ----
     const stage = document.getElementById("stage");
@@ -5172,6 +5204,24 @@
       const b = e.target.closest("button[data-jump]"); if(!b) return;
       const sec = document.getElementById("nav-"+b.dataset.jump);
       if(sec) sec.scrollIntoView({block:"start"});
+    });
+
+    // ---- category chips: filter the list (A–Z order preserved within each category) ----
+    const navlistEl = document.getElementById("navlist");
+    document.querySelector(".catbar").addEventListener("click", e=>{
+      const b = e.target.closest(".catchip"); if(!b) return;
+      document.querySelectorAll(".catchip.current").forEach(c=>c.classList.remove("current"));
+      b.classList.add("current");
+      const cat = b.dataset.cat;
+      navlistEl.querySelectorAll(".navgroup").forEach(g=>{
+        let shown = 0;
+        g.querySelectorAll("a").forEach(a=>{
+          const on = cat==="*" || a.dataset.cat===cat;
+          a.style.display = on ? "" : "none";
+          if(on) shown++;
+        });
+        g.style.display = shown ? "" : "none";
+      });
     });
 
     // ---- highlight the open recipe in the rail (class only — NO scrolling; that was the old phone bug) ----
