@@ -6472,9 +6472,16 @@
 
     document.querySelector(".catbar").addEventListener("click", e=>{
       const b = e.target.closest(".catchip"); if(!b) return;
+      const alreadyActive = b.classList.contains("current");
       document.querySelectorAll(".catchip.current").forEach(c=>c.classList.remove("current"));
-      b.classList.add("current");
-      activeCat = b.dataset.cat;
+      if(!alreadyActive || b.dataset.cat==="*"){
+        b.classList.add("current");
+        activeCat = b.dataset.cat;
+      } else {
+        // deselect: revert to All
+        document.querySelector(".catchip[data-cat='*']").classList.add("current");
+        activeCat = "*";
+      }
       applyFilters();
     });
 
