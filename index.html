@@ -49,10 +49,12 @@
       background:var(--ink);
       display:flex;flex-direction:column;
       height:100dvh;min-height:0;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
       user-select:none;
     }
     .az .brand{
       flex:0 0 auto;
+      position:sticky;top:0;z-index:2;
       padding:1rem 1rem .9rem;
       background:var(--ink);
       display:flex;align-items:center;justify-content:space-between;
@@ -90,8 +92,7 @@
 
     /* scrolling recipe-link list */
     .navlist{
-      flex:1 1 auto;min-height:0;
-      overflow-y:auto;-webkit-overflow-scrolling:touch;
+      flex:none;
       padding:0 0 2rem;
     }
     .navletter{
@@ -111,7 +112,8 @@
     .navlist a:active{background:var(--eureka-orange);color:#fff;}
     .navlist a.current,.navlist a.current:hover{background:var(--eureka-blue);color:#fff;}
     .nav-sub{display:block;font-family:var(--mono);font-size:.72rem;text-transform:uppercase;
-      letter-spacing:.06em;line-height:1.3;margin-top:.12rem;opacity:.55;}
+      letter-spacing:.06em;line-height:1.3;margin-top:.12rem;opacity:.55;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .navlist.type-filtered .ns-type,.navlist.type-filtered .ns-sep{display:none;}
     .navlist.type-filtered .nav-sub--nocat{display:none;}
 
@@ -157,7 +159,14 @@
     .stage:has(.recipe:target) .placeholder{display:none;}
 
     /* mobile-only floating back-to-list (hidden on desktop) */
-    .totop{display:none;}
+    .totop{
+      display:flex;align-items:center;gap:.35rem;
+      position:fixed;right:.85rem;bottom:.85rem;z-index:50;
+      background:var(--eureka-orange);color:#fff;text-decoration:none;
+      font-family:var(--display);font-weight:700;font-size:1rem;
+      padding:.7rem 1.05rem;border-radius:999px;
+      box-shadow:0 3px 12px rgba(0,0,0,.32);
+    }
 
     /* ----- recipe page ----- */
     .recipe{padding:1.1rem 1.4rem 3rem;}
@@ -262,15 +271,6 @@
       .proc-block li{line-height:1.42;}
       .proc-block li+li{margin-top:.6rem;}
 
-      /* floating "back to list" — plain anchor, always available on phone */
-      .totop{
-        display:flex;align-items:center;gap:.35rem;
-        position:fixed;right:.85rem;bottom:.85rem;z-index:50;
-        background:var(--eureka-orange);color:#fff;text-decoration:none;
-        font-family:var(--display);font-weight:700;font-size:1rem;
-        padding:.7rem 1.05rem;border-radius:999px;
-        box-shadow:0 3px 12px rgba(0,0,0,.32);
-      }
     }
   </style>
 </head>
@@ -10837,6 +10837,12 @@
   function safeReload(){
     if(navigator.onLine){ window.location.reload(); }
   }
+
+  document.querySelector('.totop').addEventListener('click', e=>{
+    e.preventDefault();
+    const az = document.getElementById('az');
+    if(az) az.scrollTo({top:0, behavior:'smooth'});
+  });
 
   build();
   </script>
