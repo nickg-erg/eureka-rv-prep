@@ -215,6 +215,8 @@
       .recipe{padding:1rem 1rem 4rem;}
       .placeholder{display:none;}            /* no empty state on phone — the nav is the screen */
       .rhead h1{font-size:1.7rem;}
+      .rhead{flex-direction:column;align-items:flex-start;gap:.45rem;}
+      .rpills{flex-direction:row;align-items:center;}
 
       .meta{gap:.4rem .9rem;margin:.2rem 0 1rem;}
       .meta .lbl{font-size:1rem;}
@@ -6278,12 +6280,14 @@
     const ings = r.ingredients||[], steps = r.steps||[];
     const isPrep = r.type==="prep";
     const aligned = ings.some(i=>i.step_group) && steps.some(s=>s.step_group);
+    const hasQty  = isPrep || ings.some(i=>i.qty_1x!=null && i.qty_1x!=="");
 
     // header
     let head = `<thead><tr>
         <th>INGREDIENTS</th>
         ${isPrep ? `<th class="batch" colspan="2">QUANTITY</th><th class="batch">UOM</th>`
-                 : `<th class="batch">QTY</th><th class="batch">UOM</th>`}
+                 : hasQty ? `<th class="batch">QTY</th><th class="batch">UOM</th>`
+                           : `<th class="batch">UOM</th>`}
         <th class="proc-h">PROCEDURES</th></tr>`;
     if(isPrep) head += `<tr class="sub"><th></th>`+
       `<th><span class="bx">1x</span>${r.yield_1x?`<span class="yld">${esc(r.yield_1x)}</span>`:""}</th>`+
@@ -6296,7 +6300,8 @@
         arr.map(s=>`<li>${esc(s.text)}</li>`).join("")+`</ol>`;
     const qtyCells = i => isPrep
         ? `<td class="qty">${esc(i.qty_1x)}</td><td class="qty">${esc(i.qty_2x)}</td><td class="uom">${esc(i.uom)}</td>`
-        : `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom||i.qty_2x)}</td>`;
+        : hasQty ? `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom||i.qty_2x)}</td>`
+                 : `<td class="uom">${esc(i.uom||i.qty_2x)}</td>`;
     const ingCell = i => {
         const linked = i.links_to && SLUGS.has(i.links_to);
         const inner = linked ? `<a class="ilink" href="#r-${esc(i.links_to)}">${esc(i.ingredient)}</a>` : esc(i.ingredient);
