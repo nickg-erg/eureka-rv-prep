@@ -216,7 +216,7 @@
       .placeholder{display:none;}            /* no empty state on phone — the nav is the screen */
       .rhead h1{font-size:1.7rem;}
       .rhead{flex-direction:column;align-items:flex-start;gap:.45rem;}
-      .rpills{flex-direction:row;align-items:center;}
+      .rpills{align-items:flex-start;}
 
       .meta{gap:.4rem .9rem;margin:.2rem 0 1rem;}
       .meta .lbl{font-size:1rem;}
@@ -244,6 +244,17 @@
         box-shadow:0 3px 12px rgba(0,0,0,.32);
       }
     }
+    /* reload button — only made visible when running as a standalone web-clip */
+    .reload-btn{
+      display:none;
+      position:fixed;top:calc(.6rem + env(safe-area-inset-top,0px));right:.75rem;z-index:100;
+      width:2.4rem;height:2.4rem;border-radius:999px;border:none;cursor:pointer;
+      background:var(--ink);color:#fff;font-size:1.2rem;line-height:1;
+      align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.3);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .reload-btn:active{background:var(--eureka-orange);}
   </style>
 </head>
 <body>
@@ -254,6 +265,7 @@
     </main>
   </div>
   <a class="totop" href="#nav-top">↑ Recipes</a>
+  <button class="reload-btn" id="reloadBtn" title="Reload" aria-label="Reload page" onclick="safeReload()">↻</button>
 
   <script>
   /* ==========================================================================
@@ -6436,6 +6448,15 @@
     window.addEventListener("hashchange", syncCurrent);
     syncCurrent();
   }
+  function safeReload(){
+    if(navigator.onLine){ window.location.reload(); }
+  }
+  // Show the reload button only when running as a home-screen web-clip (no browser chrome)
+  if(window.navigator.standalone || window.matchMedia('(display-mode:standalone)').matches){
+    const btn = document.getElementById('reloadBtn');
+    if(btn) btn.style.display='flex';
+  }
+
   build();
   </script>
 </body>
