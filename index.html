@@ -10838,8 +10838,7 @@
     if(navigator.onLine){ window.location.reload(); }
   }
 
-  document.querySelector('.totop').addEventListener('click', e=>{
-    e.preventDefault();
+  document.querySelector('.totop').addEventListener('click', ()=>{
     const az = document.getElementById('az');
     if(az) az.scrollTo({top:0, behavior:'smooth'});
   });
