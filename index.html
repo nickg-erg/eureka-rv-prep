@@ -111,6 +111,17 @@
     .navlist a:active{background:var(--eureka-orange);color:#fff;}
     .navlist a.current,.navlist a.current:hover{background:var(--eureka-blue);color:#fff;}
 
+    /* type toggle bar (Prep / Menu) — above category chips */
+    .typebar{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;
+      gap:1px;background:#3a3a3a;border-bottom:1px solid #3a3a3a;}
+    .typebar button{appearance:none;-webkit-appearance:none;border:0;cursor:pointer;
+      background:var(--ink-2);color:rgba(255,255,255,.55);
+      font-family:var(--mono);font-size:.92rem;line-height:1;
+      padding:.5rem 0;text-transform:uppercase;letter-spacing:.05em;
+      transition:background .12s ease,color .12s ease;}
+    .typebar button:hover{background:#333;color:#fff;}
+    .typebar button.current{background:var(--eureka-orange);color:#fff;}
+
     /* category filter chips */
     .catbar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem .6rem;
       background:var(--ink);border-bottom:1px solid #3a3a3a;}
@@ -6387,6 +6398,11 @@
     const bar = `<div class="letterbar">` + ALPHA.map(l=>
         present.has(l) ? `<button data-jump="${l}">${l.toUpperCase()}</button>`
                        : `<button class="empty" disabled>${l.toUpperCase()}</button>`).join("") + `</div>`;
+    // type toggle bar
+    const typebar = `<div class="typebar" id="typebar">` +
+      `<button data-type="prep">Prep</button>` +
+      `<button data-type="menu">Menu</button>` +
+      `</div>`;
     // category filter chips (from the Recipes-tab category column)
     const cats = [...new Set(recipes.map(r=>r.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
     const chips = `<div class="catbar"><button class="catchip current" data-cat="*">All</button>` +
@@ -6396,7 +6412,7 @@
       const forLetter = recipes.filter(r=>firstLetter(r.name)===l);
       if(!forLetter.length) return;
       nlist += `<div class="navgroup" id="nav-${l}"><div class="navletter">${l.toUpperCase()}</div>` +
-               forLetter.map(r=>`<a href="#r-${esc(r.slug)}" id="lnk-${esc(r.slug)}" data-cat="${esc(r.category||"")}">${esc(r.name)}</a>`).join("") +
+               forLetter.map(r=>`<a href="#r-${esc(r.slug)}" id="lnk-${esc(r.slug)}" data-cat="${esc(r.category||"")}" data-type="${esc(r.type||"")}">${esc(r.name)}</a>`).join("") +
                `</div>`;
     });
     nlist += `</div>`;
@@ -6409,7 +6425,7 @@
         <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
         <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
         <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
-      </svg><button class="reload-btn" onclick="safeReload()" title="Reload" aria-label="Reload page">↻</button></div>` + chips + bar + nlist;
+      </svg><button class="reload-btn" onclick="safeReload()" title="Reload" aria-label="Reload page">↻</button></div>` + typebar + chips + bar + nlist;
 
     // ---- recipe pages into the stage (after the placeholder) ----
     const stage = document.getElementById("stage");
@@ -6422,22 +6438,44 @@
       if(sec) sec.scrollIntoView({block:"start"});
     });
 
-    // ---- category chips: filter the list (A–Z order preserved within each category) ----
+    // ---- combined filter (type toggle + category chips) ----
     const navlistEl = document.getElementById("navlist");
-    document.querySelector(".catbar").addEventListener("click", e=>{
-      const b = e.target.closest(".catchip"); if(!b) return;
-      document.querySelectorAll(".catchip.current").forEach(c=>c.classList.remove("current"));
-      b.classList.add("current");
-      const cat = b.dataset.cat;
+    let activeType = null;   // null = no type filter
+    let activeCat  = "*";    // "*"  = all categories
+
+    function applyFilters(){
       navlistEl.querySelectorAll(".navgroup").forEach(g=>{
         let shown = 0;
         g.querySelectorAll("a").forEach(a=>{
-          const on = cat==="*" || a.dataset.cat===cat;
+          const typeOk = !activeType || a.dataset.type===activeType;
+          const catOk  = activeCat==="*" || a.dataset.cat===activeCat;
+          const on = typeOk && catOk;
           a.style.display = on ? "" : "none";
           if(on) shown++;
         });
         g.style.display = shown ? "" : "none";
       });
+    }
+
+    document.getElementById("typebar").addEventListener("click", e=>{
+      const b = e.target.closest("button[data-type]"); if(!b) return;
+      if(activeType===b.dataset.type){
+        activeType = null;           // tap active button → deselect
+        b.classList.remove("current");
+      } else {
+        document.querySelectorAll(".typebar button.current").forEach(x=>x.classList.remove("current"));
+        activeType = b.dataset.type;
+        b.classList.add("current");
+      }
+      applyFilters();
+    });
+
+    document.querySelector(".catbar").addEventListener("click", e=>{
+      const b = e.target.closest(".catchip"); if(!b) return;
+      document.querySelectorAll(".catchip.current").forEach(c=>c.classList.remove("current"));
+      b.classList.add("current");
+      activeCat = b.dataset.cat;
+      applyFilters();
     });
 
     // ---- highlight the open recipe in the rail (class only — NO scrolling; that was the old phone bug) ----
