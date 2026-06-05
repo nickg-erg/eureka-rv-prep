@@ -166,8 +166,9 @@
     .note h3{margin:0 0 .2rem;font-size:1.05rem;}
     .note p{margin:.1rem 0;font-size:1.02rem;line-height:1.35;}
 
-    .plate{font-family:var(--mono);font-size:.95rem;color:var(--eureka-orange);
-      text-transform:uppercase;letter-spacing:.06em;margin:0 0 .6rem;}
+    .rpills{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;align-self:center;}
+    .platepill{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;
+      color:#fff;background:var(--eureka-orange);padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
     .dish-img{max-width:22rem;width:100%;border-radius:4px;margin:0 0 1rem;display:block;}
 
     table{width:100%;border-collapse:collapse;border:2px solid var(--ink-3);
@@ -6295,7 +6296,7 @@
         arr.map(s=>`<li>${esc(s.text)}</li>`).join("")+`</ol>`;
     const qtyCells = i => isPrep
         ? `<td class="qty">${esc(i.qty_1x)}</td><td class="qty">${esc(i.qty_2x)}</td><td class="uom">${esc(i.uom)}</td>`
-        : `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom)}</td>`;
+        : `<td class="qty">${esc(i.qty_1x)}</td><td class="uom">${esc(i.uom||i.qty_2x)}</td>`;
     const ingCell = i => {
         const linked = i.links_to && SLUGS.has(i.links_to);
         const inner = linked ? `<a class="ilink" href="#r-${esc(i.links_to)}">${esc(i.ingredient)}</a>` : esc(i.ingredient);
@@ -6342,13 +6343,15 @@
         <div class="lbl">Yield</div><div class="val">${yieldVal}</div>
       </div>`;
     }
-    const plate = (!isPrep && r.plate)?`<div class="plate">Plate: ${esc(r.plate)}</div>`:"";
     const img   = (!isPrep && r.image_url)?`<img class="dish-img" src="${esc(r.image_url)}" alt="${esc(r.name)}" />`:"";
     const note  = r.note?`<div class="note"><h3>Note:</h3>${r.note.split("\n").map(l=>`<p>${esc(l)}</p>`).join("")}</div>`:"";
+    const catPill    = r.category?`<span class="catpill">${esc(r.category)}</span>`:"";
+    const platePill  = (!isPrep && r.plate)?`<span class="platepill">PLATE: ${esc(r.plate)}</span>`:"";
+    const pillsDiv   = (catPill||platePill)?`<div class="rpills">${catPill}${platePill}</div>`:"";
 
     return `<article class="recipe" id="r-${esc(r.slug)}">
-      <div class="rhead"><h1>${esc(r.name)}</h1>${r.category?`<span class="catpill">${esc(r.category)}</span>`:""}</div>
-      ${plate}${meta}${note}${img}
+      <div class="rhead"><h1>${esc(r.name)}</h1>${pillsDiv}</div>
+      ${meta}${note}${img}
       ${recipeTable(r)}
       <p class="confid">CONFIDENTIAL — Property of Eureka Restaurant Group. Internal kitchen use only; not for distribution.</p>
     </article>`;
