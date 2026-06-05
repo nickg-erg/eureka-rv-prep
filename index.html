@@ -101,6 +101,7 @@
       font-family:var(--mono);font-weight:700;font-size:.82rem;
       letter-spacing:.12em;text-transform:uppercase;
       padding:.22rem .9rem;scroll-margin-top:0;
+      border-bottom:1px solid rgba(0,0,0,.18);
     }
     .navlist a{
       display:block;color:#e9e9e9;text-decoration:none;
@@ -190,7 +191,7 @@
     .meta .val{font-family:var(--display);color:var(--text);font-size:1.1rem;line-height:1.15;}
     .meta .val .tag{font-family:var(--mono);color:var(--text-soft);font-size:.92rem;margin-right:.15rem;}
     .meta .val .ysep{display:inline-block;margin:0 .55rem;color:#c9c4be;font-weight:400;}
-    .catpill{align-self:center;flex:0 0 auto;font-family:var(--mono);font-size:.72rem;
+    .catpill{align-self:auto;flex:0 0 auto;font-family:var(--mono);font-size:.72rem;
       text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--ink-2);
       padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
     .ilink{color:var(--eureka-blue);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;}
@@ -254,8 +255,9 @@
       .placeholder{display:none;}            /* no empty state on phone — the nav is the screen */
       .rhead h1{font-size:1.7rem;}
       .rhead{flex-direction:column;align-items:flex-start;gap:.45rem;}
-      .rpills{align-items:flex-start;align-self:flex-start;}
+      .rpills{align-items:flex-start;align-self:flex-start;width:100%;}
       .rpills .catpill,.rpills .platepill{align-self:flex-start;}
+      .platepill{white-space:normal;}
 
       .meta{gap:.4rem .9rem;margin:.2rem 0 1rem;}
       .meta .lbl{font-size:1rem;}
