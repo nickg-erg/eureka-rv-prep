@@ -55,10 +55,21 @@
       flex:0 0 auto;
       padding:1rem 1rem .9rem;
       background:var(--ink);
-      display:flex;align-items:center;
+      display:flex;align-items:center;justify-content:space-between;
       border-bottom:1px solid #3a3a3a;
     }
     .az .brand svg{width:100%;height:auto;max-width:8.5rem;display:block;}
+    .reload-btn{
+      appearance:none;-webkit-appearance:none;flex:0 0 auto;
+      background:transparent;border:1px solid rgba(255,255,255,.28);
+      color:rgba(255,255,255,.7);border-radius:999px;
+      width:2rem;height:2rem;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.15rem;cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .reload-btn:hover{border-color:rgba(255,255,255,.55);color:#fff;}
+    .reload-btn:active{background:var(--eureka-orange);border-color:var(--eureka-orange);color:#fff;}
 
     /* A–Z jump strip (buttons; JS scrolls the list, no hash change) */
     .letterbar{
@@ -151,7 +162,7 @@
     .meta{display:grid;grid-template-columns:max-content 1fr;gap:.5rem 1.6rem;
       align-items:baseline;margin:.2rem 0 1.1rem;}
     .meta .lbl{font-family:var(--display);font-weight:800;font-size:1.12rem;color:var(--ink);
-      border-left:4px solid var(--eureka-orange);padding-left:.55rem;line-height:1.15;}
+      border-left:3px solid var(--eureka-orange);padding-left:.55rem;line-height:1.15;}
     .meta .val{font-family:var(--display);color:var(--text);font-size:1.1rem;line-height:1.15;}
     .meta .val .tag{font-family:var(--mono);color:var(--text-soft);font-size:.92rem;margin-right:.15rem;}
     .meta .val .ysep{display:inline-block;margin:0 .55rem;color:#c9c4be;font-weight:400;}
@@ -162,7 +173,8 @@
     .confid{margin-top:2.2rem;padding-top:.75rem;border-top:1px solid #d9d6d2;
       font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;color:#9a948d;text-transform:uppercase;}
 
-    .note{background:var(--note);padding:.6rem .8rem;margin:0 0 1rem;max-width:64rem;}
+    .note{background:var(--note);padding:.6rem .8rem;margin:0 0 1rem;max-width:64rem;
+      box-shadow:0 3px 7px rgba(0,0,0,.07);}
     .note h3{margin:0 0 .2rem;font-size:1.05rem;}
     .note p{margin:.1rem 0;font-size:1.02rem;line-height:1.35;}
 
@@ -216,7 +228,7 @@
       .placeholder{display:none;}            /* no empty state on phone — the nav is the screen */
       .rhead h1{font-size:1.7rem;}
       .rhead{flex-direction:column;align-items:flex-start;gap:.45rem;}
-      .rpills{align-items:flex-start;}
+      .rpills{align-items:flex-start;align-self:flex-start;}
 
       .meta{gap:.4rem .9rem;margin:.2rem 0 1rem;}
       .meta .lbl{font-size:1rem;}
@@ -244,17 +256,6 @@
         box-shadow:0 3px 12px rgba(0,0,0,.32);
       }
     }
-    /* reload button — only made visible when running as a standalone web-clip */
-    .reload-btn{
-      display:none;
-      position:fixed;top:calc(.6rem + env(safe-area-inset-top,0px));right:.75rem;z-index:100;
-      width:2.4rem;height:2.4rem;border-radius:999px;border:none;cursor:pointer;
-      background:var(--ink);color:#fff;font-size:1.2rem;line-height:1;
-      align-items:center;justify-content:center;
-      box-shadow:0 2px 8px rgba(0,0,0,.3);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .reload-btn:active{background:var(--eureka-orange);}
   </style>
 </head>
 <body>
@@ -265,7 +266,6 @@
     </main>
   </div>
   <a class="totop" href="#nav-top">↑ Recipes</a>
-  <button class="reload-btn" id="reloadBtn" title="Reload" aria-label="Reload page" onclick="safeReload()">↻</button>
 
   <script>
   /* ==========================================================================
@@ -6400,7 +6400,7 @@
     });
     nlist += `</div>`;
     az.innerHTML =
-      `<div class="brand" id="nav-top"><svg viewBox="0 0 800 193" xmlns="http://www.w3.org/2000/svg" aria-label="Eureka">
+      `<div class="brand" id="nav-top"><svg viewBox="0 0 800 193" xmlns="http://www.w3.org/2000/svg" aria-label="Eureka" style="flex:0 0 auto;">
         <path d="M137.76 34.4489H39.4751V73.9495H129.697V106.263H39.4751V154.097H142.295V187.542H1.54761V1.50791H137.76V34.4489Z" fill="#fff"/>
         <path d="M186.071 49.9693V132.89C186.071 140.716 186.991 146.607 188.828 150.566C192.09 157.546 198.483 161.036 208.012 161.036C220.213 161.036 228.572 156.076 233.089 146.143C235.426 140.757 236.599 133.649 236.599 124.814V49.9693H273.014V187.542H238.113V168.106C237.778 168.526 236.936 169.786 235.599 171.89C234.257 173.993 232.669 175.847 230.825 177.441C225.214 182.494 219.787 185.947 214.554 187.792C209.317 189.644 203.179 190.57 196.146 190.57C175.872 190.57 162.219 183.254 155.181 168.611C151.245 160.533 149.279 148.629 149.279 132.89V49.9693H186.071Z" fill="#fff"/>
         <path d="M359.699 46.7531C360.16 46.7968 361.192 46.8588 362.786 46.9438V83.7953C360.518 83.5449 358.504 83.3771 356.74 83.2921C354.973 83.2071 353.544 83.1635 352.452 83.1635C338.005 83.1635 328.302 87.8782 323.347 97.303C320.574 102.604 319.188 110.765 319.188 121.784V187.542H283.023V49.9698H317.301V73.95C322.845 64.7802 327.676 58.5123 331.791 55.1463C338.51 49.5102 347.245 46.6888 357.999 46.6888C358.669 46.6888 359.235 46.7117 359.699 46.7531Z" fill="#fff"/>
@@ -6408,7 +6408,7 @@
         <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
         <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
         <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
-      </svg></div>` + chips + bar + nlist;
+      </svg><button class="reload-btn" onclick="safeReload()" title="Reload" aria-label="Reload page">↻</button></div>` + chips + bar + nlist;
 
     // ---- recipe pages into the stage (after the placeholder) ----
     const stage = document.getElementById("stage");
@@ -6450,11 +6450,6 @@
   }
   function safeReload(){
     if(navigator.onLine){ window.location.reload(); }
-  }
-  // Show the reload button only when running as a home-screen web-clip (no browser chrome)
-  if(window.navigator.standalone || window.matchMedia('(display-mode:standalone)').matches){
-    const btn = document.getElementById('reloadBtn');
-    if(btn) btn.style.display='flex';
   }
 
   build();
