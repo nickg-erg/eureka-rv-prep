@@ -116,16 +116,39 @@ Behavior:
 
 Viewer code changes happen directly in `index.html`. Publish never touches anything outside the markers.
 
-## 6. Hosting — GitHub + Pages
-- **Repo:** `github.com/nickg-erg/eureka-rv`, branch `main`. `index.html` (viewer) +
-  `images/<slug>.jpg` (plate photos).
-- **Pages:** serves at https://nickg-erg.github.io/eureka-rv/. Every commit to `main` (recipe
-  publish or photo) auto-redeploys, live in ~1 min.
-- **History:** repo was renamed `eureka-rv-prep` → `eureka-rv`; GitHub redirects the old name,
-  which is why scripts kept working. **Action item:** set `CONFIG.repo = 'eureka-rv'` in
-  `publish.gs` (redirect isn't guaranteed permanent; `image-sync.gs` reads the same `CONFIG`,
-  so one edit fixes both).
-- Hosting is **GitHub Pages** (an earlier Netlify iteration is retired).
+## 6a. Editing surfaces — what's editable where (and with which tool)
+
+The system spans two codebases that do NOT share a filesystem. Knowing which side a thing
+lives on tells you which tool to reach for.
+
+### GitHub side — Claude Code works here
+Everything in the repo (`github.com/nickg-erg/eureka-rv`):
+- `index.html` — the entire viewer: layout, styles, list/search, detail page, plate hero
+  image logic, branding. All hand-editable.
+- `images/<slug>.jpg` — the photos.
+- `ARCHITECTURE.md` — this doc.
+
+Anything about how the viewer *looks or behaves* is here, so Claude Code (or direct GitHub
+editing) is the right tool. The planned config-driven `index.html` template for 3-brand is
+also GitHub-side.
+
+### Apps Script side — Claude Code CANNOT reach this
+The bound Apps Script project on the Sheet:
+- `publish.gs` — publish pipeline, the Recipe Viewer menu, GitHub commit logic, validation/dropdowns.
+- `image-sync.gs` — the photo drop → normalize → commit pipeline.
+- (`one-time-import.gs` / `maintenance.gs` — migration + diagnostics.)
+
+These are not in the repo and there's no local filesystem for them. Edits happen in the
+Apps Script editor — paste full-file replacements. Claude Code has no access here.
+
+> The one bridge: the `.gs` scripts *write into* the GitHub repo (they commit `index.html`
+> and `images/`), but the script source itself is Apps Script-side, not in the repo.
+
+### Rule of thumb
+- Viewer / template / UI / branding → **GitHub repo (Claude Code).**
+- Publish logic, photo-sync logic, menu, validation → **Apps Script editor (paste full files).**
+- The 3-brand shared library (§13) is **Apps Script-side**; its config-driven `index.html`
+  template is **GitHub-side**.
 
 ## 7. Publish pipeline — `publish.gs`
 Bound to the Sheet. Builds recipe data and commits it into `index.html`.
