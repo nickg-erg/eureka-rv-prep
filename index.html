@@ -11191,7 +11191,7 @@
         <div class="lbl">Yield</div><div class="val">${yieldVal}</div>
       </div>`;
     }
-    const hero  = (r.type==='plate') ? `<div class="dish-hero" style="display:none"><img src="images/${esc(r.slug)}.jpg" alt="${esc(r.name)}" decoding="async"></div>` : '';
+    const hero  = (r.type==='plate') ? `<div class="dish-hero" style="display:none"><img data-src="images/${esc(r.slug)}.jpg" alt="${esc(r.name)}" decoding="async"></div>` : '';
     const note  = r.note?`<div class="note"><h3>Note:</h3>${r.note.split("\n").map(l=>`<p>${esc(l)}</p>`).join("")}</div>`:"";
     const catPill    = r.category?`<span class="catpill">${esc(r.category)}</span>`:"";
     const platePill  = (!isPrep && r.plate)?`<span class="platepill">PLATE: ${esc(r.plate)}</span>`:"";
@@ -11260,16 +11260,25 @@
     const stage = document.getElementById("stage");
     stage.insertAdjacentHTML("beforeend", recipes.map(recipePage).join(""));
 
-    // ---- plate photo heroes: reveal on load, stay hidden on 404/error ----
-    stage.querySelectorAll('.dish-hero img').forEach(img=>{
+    // ---- plate photo heroes: lazy-load only when that recipe is navigated to ----
+    function loadHeroForHash(){
+      const m = location.hash.match(/^#r-(.+)$/);
+      if(!m) return;
+      const article = document.getElementById('r-'+m[1]);
+      if(!article) return;
+      const img = article.querySelector('.dish-hero img[data-src]');
+      if(!img) return;
       const hero = img.parentElement;
-      const reveal = ()=>{ hero.style.display=''; };
-      if(img.complete){ if(img.naturalWidth) reveal(); }
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+      if(img.complete){ if(img.naturalWidth) hero.style.display=''; }
       else {
-        img.addEventListener('load',  reveal,                          {once:true});
-        img.addEventListener('error', ()=>{ hero.style.display='none';}, {once:true});
+        img.addEventListener('load',  ()=>{ hero.style.display=''; },    {once:true});
+        img.addEventListener('error', ()=>{ hero.style.display='none'; }, {once:true});
       }
-    });
+    }
+    window.addEventListener('hashchange', loadHeroForHash);
+    loadHeroForHash();
 
     // ---- letter strip: scroll the rail only; the open recipe (a #r- :target) is left untouched ----
     document.querySelector(".letterbar").addEventListener("click", e=>{
