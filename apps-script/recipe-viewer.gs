@@ -572,8 +572,14 @@ function tokenScore_(keyTokens, slug) {
   var slugTokens = filterTokens_(slug.split('-'));
   if (!slugTokens.length) return 0;
   var shared = 0;
-  keyTokens.forEach(function (t) { if (slugTokens.indexOf(t) !== -1) shared++; });
+  keyTokens.forEach(function (kt) {
+    if (slugTokens.some(function (st) { return tokenMatch_(kt, st); })) shared++;
+  });
   return shared / Math.max(keyTokens.length, slugTokens.length);
+}
+
+function tokenMatch_(a, b) {
+  return a === b || a + 's' === b || a === b + 's';
 }
 
 function lev_(a, b) {
