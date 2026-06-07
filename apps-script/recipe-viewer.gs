@@ -539,9 +539,37 @@ function slugify_(s) {
 }
 
 function closestSlug_(key, slugs) {
-  var best = '', bestD = 1e9;
-  slugs.forEach(function (s) { var d = lev_(key, s); if (d < bestD) { bestD = d; best = s; } });
-  return bestD <= Math.max(3, Math.floor(key.length / 3)) ? best : '';
+  if (!slugs.length) return '';
+  var keyTokens = filterTokens_(key.split('-'));
+  if (!keyTokens.length) return '';
+
+  var best = '', bestScore = -1;
+  slugs.forEach(function (slug) {
+    var score = tokenScore_(keyTokens, slug);
+    if (score > bestScore) { bestScore = score; best = slug; }
+  });
+  if (bestScore >= 0.5) return best;
+
+  // Fallback: Levenshtein for short, similar names
+  var bestLev = '', bestD = 1e9;
+  slugs.forEach(function (s) { var d = lev_(key, s); if (d < bestD) { bestD = d; bestLev = s; } });
+  return bestD <= Math.max(3, Math.floor(key.length / 3)) ? bestLev : '';
+}
+
+var STOP_TOKENS_ = { of:1, and:1, the:1, a:1, an:1, in:1, on:1, am:1, pm:1, with:1 };
+
+function filterTokens_(tokens) {
+  return tokens.filter(function (t) {
+    return t && !STOP_TOKENS_[t] && !/^\d+$/.test(t);
+  });
+}
+
+function tokenScore_(keyTokens, slug) {
+  var slugTokens = filterTokens_(slug.split('-'));
+  if (!slugTokens.length) return 0;
+  var shared = 0;
+  keyTokens.forEach(function (t) { if (slugTokens.indexOf(t) !== -1) shared++; });
+  return shared / Math.max(keyTokens.length, slugTokens.length);
 }
 
 function lev_(a, b) {
