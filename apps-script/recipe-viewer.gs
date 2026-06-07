@@ -1,6 +1,6 @@
 /**
  * ERG Recipe Viewer — single Apps Script project bound to the shared recipe Sheet.
- * Auto-deployed via GitHub Actions + CLASP.
+ * Auto-deployed via GitHub Actions + CLASP. Test 3.
  *
  * ONE-TIME SETUP
  *  1. Open the recipe Sheet → Extensions > Apps Script
