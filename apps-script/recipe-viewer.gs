@@ -392,7 +392,7 @@ function clean_(o) {
    VALIDATION / DROPDOWNS
    ============================================================ */
 
-var CONFIG_TAB_   = 'Config';
+var CONFIG_TAB_   = 'UOM Config';
 var DEFAULT_UOMS_ = [
   'oz-wt','oz-fl','lbs','ltr','tsp','tbsp','pint','qt',
   'gal','grs','kg','cup','ea','bunch','pinch','slices',
