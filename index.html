@@ -16,16 +16,16 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1rem;
-      gap: 2.5rem;
+      padding: 2.5rem 1.25rem;
+      gap: 2rem;
     }
 
     h1 {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 500;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #888;
+      color: #555;
     }
 
     .brands {
@@ -33,40 +33,43 @@
       flex-direction: column;
       gap: 0.75rem;
       width: 100%;
-      max-width: 22rem;
+      max-width: 24rem;
     }
 
     a.brand {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 1.1rem 1.4rem;
-      border-radius: 10px;
+      justify-content: center;
+      padding: 1.5rem 1.75rem;
+      border-radius: 12px;
       text-decoration: none;
-      color: #fff;
-      font-size: 1.05rem;
-      font-weight: 600;
-      letter-spacing: 0.01em;
       transition: filter 0.15s, transform 0.15s;
-      position: relative;
-      overflow: hidden;
     }
 
-    a.brand:hover  { filter: brightness(1.12); transform: translateY(-1px); }
-    a.brand:active { filter: brightness(0.92); transform: translateY(0); }
+    a.brand:hover  { filter: brightness(1.1);  transform: translateY(-1px); }
+    a.brand:active { filter: brightness(0.9);  transform: translateY(0); }
 
-    a.brand .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.45);
-      flex-shrink: 0;
+    a.brand img {
+      display: block;
+      width: 100%;
+      height: auto;
     }
 
-    a.brand .arrow {
-      margin-left: auto;
-      opacity: 0.55;
-      font-size: 1rem;
+    .brand-eureka    { background: #FF671D; }
+    .brand-lapopular { background: #C99D66; }
+    .brand-amalfi    { background: #1A1A1A; outline: 1px solid #2e2e2e; }
+
+    .brand-eureka    img { max-width: 82%; margin: 0 auto; }
+    .brand-lapopular img { max-width: 78%; margin: 0 auto; }
+    /* Amalfi wordmark is very wide/short — add vertical breathing room */
+    .brand-amalfi    img { max-width: 70%; margin: 0.5rem auto; }
+
+    footer {
+      font-size: 0.62rem;
+      color: #3a3a3a;
+      text-align: center;
+      line-height: 1.6;
+      max-width: 22rem;
     }
   </style>
 </head>
@@ -74,21 +77,20 @@
   <h1>ERG Recipe Viewer</h1>
 
   <div class="brands">
-    <a class="brand" href="eureka/" style="background:#FF671D;">
-      <span class="dot"></span>
-      Eureka
-      <span class="arrow">›</span>
+    <a class="brand brand-eureka" href="eureka/">
+      <img src="eureka/logo.svg" alt="Eureka" />
     </a>
-    <a class="brand" href="lapopular/" style="background:#C99D66;">
-      <span class="dot"></span>
-      La Popular
-      <span class="arrow">›</span>
+    <a class="brand brand-lapopular" href="lapopular/">
+      <img src="lapopular/logo.svg" alt="La Popular" />
     </a>
-    <a class="brand" href="amalfillama/" style="background:#1A1A1A; outline: 1px solid #333;">
-      <span class="dot"></span>
-      Amalfi Llama
-      <span class="arrow">›</span>
+    <a class="brand brand-amalfi" href="amalfillama/">
+      <img src="amalfillama/logo.svg" alt="Amalfi Llama" />
     </a>
   </div>
+
+  <footer>
+    Confidential &amp; Proprietary — Eureka Restaurant Group.<br>
+    For internal use only. Do not distribute.
+  </footer>
 </body>
 </html>
