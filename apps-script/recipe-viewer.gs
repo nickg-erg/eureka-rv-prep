@@ -67,28 +67,28 @@ function onOpen() {
 
   [['Eureka', 'Eureka'], ['La Popular', 'LaPopular'], ['Amalfi Llama', 'Amalfi']].forEach(function (p) {
     menu.addSubMenu(ui.createMenu(p[0])
-      .addItem('Publish to site',              'publish' + p[1])
-      .addItem('Preview what will publish',    'preview' + p[1])
-      .addItem('Sync new photos now',          'sync'    + p[1])
-      .addItem('Stage source photos → Drop',   'stage'   + p[1]));
+      .addItem('Publish to site',           'publish' + p[1])
+      .addItem('Preview what will publish', 'preview' + p[1])
+      .addItem('Sync new photos now',       'sync'    + p[1]));
   });
-  menu.addSeparator().addItem('Publish ALL brands', 'publishAll')
-    .addItem('Refresh README tab', 'refreshReadme');
+  menu.addSeparator().addItem('Publish ALL brands', 'publishAll');
 
   var admin = false;
   try { admin = ADMINS.indexOf(Session.getEffectiveUser().getEmail()) !== -1; } catch (e) {}
   if (admin) {
     menu.addSeparator().addSubMenu(ui.createMenu('Admin (IT)')
-      .addItem('Refresh photo cheat sheet',          'refreshCheatSheet')
-      .addItem('Clean LP drop folder (one-time)',    'cleanDropFolderLaPopular')
-      .addItem('Clean Amalfi drop folder (one-time)','cleanDropFolderAmalfi')
-      .addItem('Clean Amalfi review folder (one-time)','cleanAmalfiReviewFolder')
-      .addItem('Delete .jpeg duplicates — Eureka',   'cleanJpegDupsEureka')
-      .addItem('Delete .jpeg duplicates — La Popular','cleanJpegDupsLaPopular')
-      .addItem('Delete .jpeg duplicates — Amalfi',   'cleanJpegDupsAmalfi')
+      .addItem('Refresh photo cheat sheet', 'refreshCheatSheet')
+      .addItem('Refresh README tab',        'refreshReadme')
       .addSeparator()
-      .addItem('Set / update GitHub token',          'setToken')
-      .addItem('Set up dropdowns',           'setupDropdowns'));
+      .addItem('Set up dropdowns',          'setupDropdowns')
+      .addItem('Set / update GitHub token', 'setToken')
+      .addSeparator()
+      .addItem('Clean LP drop folder (one-time)',        'cleanDropFolderLaPopular')
+      .addItem('Clean Amalfi drop folder (one-time)',    'cleanDropFolderAmalfi')
+      .addItem('Clean Amalfi review folder (one-time)',  'cleanAmalfiReviewFolder')
+      .addItem('Delete .jpeg duplicates — Eureka',       'cleanJpegDupsEureka')
+      .addItem('Delete .jpeg duplicates — La Popular',   'cleanJpegDupsLaPopular')
+      .addItem('Delete .jpeg duplicates — Amalfi',       'cleanJpegDupsAmalfi'));
   }
   menu.addToUi();
 }
