@@ -39,6 +39,7 @@ var BRANDS = {
     brandName: 'La Popular', concept: 'La Popular',
     brandPrimary: '#C99D66', brandAccent: '#2E6E73',
     outputPath: 'lapopular/index.html', logoPath: 'lapopular/logo.svg', imageDir: 'lapopular/images',
+    sourceFolderId: '1kkKillNpDiSZxYg81NbVDvp4PE-1DzPI',
     dropFolderId:   '1MVyGWQSy3nqvKSg-MVSjslpFUPiTE2eH',
     doneFolderId:   '1Ggk9tCneneUkf8tIdYiOA5m_Ocwn4AuI',
     reviewFolderId: '1fe3QTTuu7K1Ad8pAuuNs9ABkm_wLrFPX'
@@ -47,6 +48,7 @@ var BRANDS = {
     brandName: 'Amalfi Llama', concept: 'Amalfi Llama',
     brandPrimary: '#1A1A1A', brandAccent: '#910707',
     outputPath: 'amalfillama/index.html', logoPath: 'amalfillama/logo.svg', imageDir: 'amalfillama/images',
+    sourceFolderId: '13v7GMV3RM3ucmJr2vq8CbHc5u9U8h2W-',
     dropFolderId:   '1fB5BqCoveXFxCv91pkeJQaJnZ9Ft2c2b',
     doneFolderId:   '1YXPXJSfYMOhaKs_8QWcgcuYF70AclHjj',
     reviewFolderId: '1JSLmUgSCHYopDeOFHhGuFK3aqpPVpRaG'
@@ -611,16 +613,18 @@ function notifyBounces_(cfg, bounced, committed) {
  * "Sync new photos now" to process the drop folder as normal.
  */
 function importSourcePhotos(cfg) {
-  var ui  = SpreadsheetApp.getUi();
-  var res = ui.prompt(
-    'Stage source photos — ' + cfg.brandName,
-    'Paste the Google Drive folder URL (or just the folder ID) that contains your existing photos:',
-    ui.ButtonSet.OK_CANCEL);
-  if (res.getSelectedButton() !== ui.Button.OK) return;
+  var ui       = SpreadsheetApp.getUi();
+  var folderId = cfg.sourceFolderId || null;
 
-  var input    = res.getResponseText().trim();
-  var folderId = extractFolderId_(input);
-  if (!folderId) { ui.alert('Could not parse a folder ID from that input. Try pasting just the folder ID.'); return; }
+  if (!folderId) {
+    var res = ui.prompt(
+      'Stage source photos — ' + cfg.brandName,
+      'Paste the Google Drive folder URL (or just the folder ID) that contains your existing photos:',
+      ui.ButtonSet.OK_CANCEL);
+    if (res.getSelectedButton() !== ui.Button.OK) return;
+    folderId = extractFolderId_(res.getResponseText().trim());
+    if (!folderId) { ui.alert('Could not parse a folder ID from that input. Try pasting just the folder ID.'); return; }
+  }
 
   var srcFolder, dropFolder;
   try { srcFolder  = DriveApp.getFolderById(folderId); }
