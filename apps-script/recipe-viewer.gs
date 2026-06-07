@@ -79,6 +79,7 @@ function onOpen() {
     menu.addSeparator().addSubMenu(ui.createMenu('Admin (IT)')
       .addItem('Refresh photo cheat sheet',          'refreshCheatSheet')
       .addItem('Clean LP drop folder (one-time)',    'cleanDropFolderLaPopular')
+      .addItem('Clean Amalfi drop folder (one-time)','cleanDropFolderAmalfi')
       .addItem('Delete .jpeg duplicates — Eureka',   'cleanJpegDupsEureka')
       .addItem('Delete .jpeg duplicates — La Popular','cleanJpegDupsLaPopular')
       .addItem('Delete .jpeg duplicates — Amalfi',   'cleanJpegDupsAmalfi')
@@ -914,4 +915,80 @@ function cleanDropFolderLaPopular() {
   if (notFound.length) msg += '\nNot found (may not have staged): ' + notFound.join(', ') + '\n';
   msg += '\nRenamed:\n' + renamed.map(function (r) { return '• ' + r; }).join('\n');
   ui.alert('LP drop folder cleaned', msg, ui.ButtonSet.OK);
+}
+
+function cleanDropFolderAmalfi() {
+  var ui     = SpreadsheetApp.getUi();
+  var folder = DriveApp.getFolderById(BRANDS.amalfi.dropFolderId);
+
+  // Files that staged to a wrong slug and need correcting
+  var RENAME = {
+    'butter-cake.jpeg':          'crab-cakes.jpeg',       // CRAB CAKE was wrongly matched to butter-cake
+    'woodfired-shrimp.jpeg':     'wood-roasted-shrimp.jpeg',
+    'rigatoni-bolognaise.jpeg':  'bolognese.jpeg'
+  };
+
+  // Files with no matching slug — catering variants, timestamp names, LTOs, etc.
+  var DELETE = [
+    // timestamp-suffixed originals that re-staged with date in name
+    'hamburger-11-1-24.jpeg',
+    'burger-11-1-24.jpeg',
+    // event/catering/tray-pass variants (no viewer slug)
+    'catering-antipasto-board.jpeg',
+    'catering-charcuterie-board.jpeg',
+    'catering-passed-apps.jpeg',
+    'catering-bruschetta-platter.jpeg',
+    'event-bruschetta.jpeg',
+    'event-apps.jpeg',
+    'tray-pass-bruschetta.jpeg',
+    'tray-pass-apps.jpeg',
+    'tray-pass-arancini.jpeg',
+    // platter/board shots that don't correspond to a plate slug
+    'antipasto-board.jpeg',
+    'charcuterie-board.jpeg',
+    'dessert-board.jpeg',
+    'family-style-platter.jpeg'
+  ];
+
+  // Build a name → [files] map
+  var fileMap = {};
+  var iter = folder.getFiles();
+  while (iter.hasNext()) {
+    var f = iter.next();
+    var n = f.getName();
+    if (!fileMap[n]) fileMap[n] = [];
+    fileMap[n].push(f);
+  }
+
+  var renamed = [], deleted = [], notFound = [], duplicates = [];
+
+  // Report duplicate slugs so user can manually pick best before Sync
+  Object.keys(fileMap).forEach(function (name) {
+    if (fileMap[name].length > 1) duplicates.push(name + ' ×' + fileMap[name].length);
+  });
+
+  Object.keys(RENAME).forEach(function (from) {
+    if (fileMap[from] && fileMap[from].length > 0) {
+      fileMap[from][0].setName(RENAME[from]);
+      renamed.push(from + ' → ' + RENAME[from]);
+    } else {
+      notFound.push(from);
+    }
+  });
+
+  DELETE.forEach(function (name) {
+    if (fileMap[name] && fileMap[name].length > 0) {
+      fileMap[name].forEach(function (f) { f.setTrashed(true); });
+      deleted.push(name);
+    }
+  });
+
+  var msg = renamed.length + ' renamed, ' + deleted.length + ' deleted.\n';
+  if (notFound.length) msg += '\nNot found (skipped): ' + notFound.join(', ') + '\n';
+  if (duplicates.length) {
+    msg += '\n⚠️ Duplicate files — manually keep one and delete the rest in Drive before running Sync:\n';
+    msg += duplicates.map(function (d) { return '• ' + d; }).join('\n');
+  }
+  msg += '\nRenamed:\n' + renamed.map(function (r) { return '• ' + r; }).join('\n');
+  ui.alert('Amalfi drop folder cleaned', msg, ui.ButtonSet.OK);
 }
