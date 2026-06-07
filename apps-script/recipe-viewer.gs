@@ -77,9 +77,10 @@ function onOpen() {
   try { admin = ADMINS.indexOf(Session.getEffectiveUser().getEmail()) !== -1; } catch (e) {}
   if (admin) {
     menu.addSeparator().addSubMenu(ui.createMenu('Admin (IT)')
-      .addItem('Refresh photo cheat sheet',  'refreshCheatSheet')
+      .addItem('Refresh photo cheat sheet',          'refreshCheatSheet')
+      .addItem('Clean LP drop folder (one-time)',    'cleanDropFolderLaPopular')
       .addSeparator()
-      .addItem('Set / update GitHub token',  'setToken')
+      .addItem('Set / update GitHub token',          'setToken')
       .addItem('Set up dropdowns',           'setupDropdowns'));
   }
   menu.addToUi();
@@ -733,4 +734,104 @@ function listRepoImages_(token, cfg) {
     { headers: ghHeaders_(token), muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) return new Set();
   return new Set(JSON.parse(res.getContentText()).map(function (f) { return f.name; }));
+}
+
+/* ============================================================
+   ONE-TIME DROP FOLDER CLEANUP — LA POPULAR
+   ============================================================ */
+
+function cleanDropFolderLaPopular() {
+  var ui     = SpreadsheetApp.getUi();
+  var folder = DriveApp.getFolderById(BRANDS.lapopular.dropFolderId);
+
+  // Files in drop folder (after staging) that need renaming to correct slug
+  var RENAME = {
+    'salsa-toreado-7-10-44-am.jpeg': 'salsa-toreado.jpeg',
+    'salsa-lorenzo-7-10-44-am.jpeg': 'salsa-lorenza.jpeg',   // note: lorenzA
+    'creamy-shrimp.jpeg':            'creamy-shrimp-tacos.jpeg',
+    'tajin-fries-in-tin.heic':       'tajin-fries.heic',
+    'avocado-side.jpeg':             'side-of-avocado.jpeg',
+    'eggs-side.jpeg':                'side-of-eggs.jpeg',
+    'pancakes.jpeg':                 'buttermilk-pancakes.jpeg',
+    'conchas.jpeg':                  'concha-duo.jpeg',
+    'chicken-tinga.jpeg':            'chicken-tinga-tacos.jpeg',
+    'carnitas.jpeg':                 'carnitas-tacos.jpeg',
+    'steak-fajita-grilled.jpeg':     'steak-fajitas.jpeg',
+    'baja-taco-shrimp-tempura.jpeg': 'baja-shrimp-tacos.jpeg',
+    'baja-taco-fish-tempura.jpeg':   'baja-mahi-mahi-tacos.jpeg'
+  };
+
+  // Files to trash — no matching slug, duplicates, or catering/kids not in viewer
+  var DELETE = [
+    'caser-salad-side.jpeg',          // house-salad already matched
+    'queso-fundido-chorizo.jpeg',      // queso-fundido already matched
+    'chicken-fajita-grilled.jpeg',     // chicken-fajitas already matched
+    'baja-taco-shrimp-grilled.jpeg',   // keeping tempura version above
+    'baja-taco-fish-grilled.jpeg',     // keeping tempura version above
+    'burrito.jpeg',                    // no generic burrito slug
+    'burrito-wet.jpeg',                // no slug
+    'salsa-verde.jpeg',                // no plain salsa-verde plate slug
+    'toreado.jpeg',                    // ambiguous — multiple toreado preps, no plate slug
+    'birria.jpeg',                     // only prep slugs (birria-cooking, birria-marinade)
+    'colorado-enchilada.jpeg',         // no matching slug
+    'half-rice-beans.jpeg',            // no slug
+    'corn-off-the-cob-salad.jpeg',     // only catering-corn-off-the-cob (prep)
+    'nachos-2-0.jpeg',                 // version number, no nachos slug
+    'nachos-green-2-0.jpeg',           // same
+    'costra-style.jpeg',               // LTO, no slug
+    'smoked-brisket.png',              // LTO, no slug
+    'octopus-taco.png',                // LTO, no slug
+    'goshujang-tacos.png',             // LTO, no slug
+    'chorizo-tacos.jpeg',              // no slug
+    'chorizo-and-egg-taquitos.jpeg',   // no slug
+    'tortillas.jpeg',                  // prep only
+    'catering-taco-bar-toppings.jpeg', // catering, not in viewer
+    'catering-taco-bar.jpeg',
+    'catering-salad.jpeg',
+    'beo.png',
+    'kids-burrito.jpeg',
+    'kids-bowl.jpeg',
+    'kids-snack.jpeg',
+    'kids-taco.jpeg'
+  ];
+
+  // Build a name → [files] map (Drive allows duplicate names)
+  var fileMap = {};
+  var iter = folder.getFiles();
+  while (iter.hasNext()) {
+    var f = iter.next();
+    var n = f.getName();
+    if (!fileMap[n]) fileMap[n] = [];
+    fileMap[n].push(f);
+  }
+
+  var renamed = [], deleted = [], notFound = [];
+
+  // Handle ribeye-tacos duplicate — second copy becomes a-la-carte-tacos
+  if (fileMap['ribeye-tacos.jpeg'] && fileMap['ribeye-tacos.jpeg'].length > 1) {
+    fileMap['ribeye-tacos.jpeg'][1].setName('a-la-carte-tacos.jpeg');
+    renamed.push('ribeye-tacos.jpeg (duplicate) → a-la-carte-tacos.jpeg');
+    fileMap['ribeye-tacos.jpeg'].splice(1, 1);
+  }
+
+  Object.keys(RENAME).forEach(function (from) {
+    if (fileMap[from] && fileMap[from].length > 0) {
+      fileMap[from][0].setName(RENAME[from]);
+      renamed.push(from + ' → ' + RENAME[from]);
+    } else {
+      notFound.push(from);
+    }
+  });
+
+  DELETE.forEach(function (name) {
+    if (fileMap[name] && fileMap[name].length > 0) {
+      fileMap[name].forEach(function (f) { f.setTrashed(true); });
+      deleted.push(name);
+    }
+  });
+
+  var msg = renamed.length + ' renamed, ' + deleted.length + ' deleted.\n';
+  if (notFound.length) msg += '\nNot found (may not have staged): ' + notFound.join(', ') + '\n';
+  msg += '\nRenamed:\n' + renamed.map(function (r) { return '• ' + r; }).join('\n');
+  ui.alert('LP drop folder cleaned', msg, ui.ButtonSet.OK);
 }
