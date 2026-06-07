@@ -64,9 +64,10 @@ function onOpen() {
 
   [['Eureka', 'Eureka'], ['La Popular', 'LaPopular'], ['Amalfi Llama', 'Amalfi']].forEach(function (p) {
     menu.addSubMenu(ui.createMenu(p[0])
-      .addItem('Publish to site',          'publish' + p[1])
-      .addItem('Preview what will publish', 'preview' + p[1])
-      .addItem('Sync new photos now',       'sync'    + p[1]));
+      .addItem('Publish to site',              'publish' + p[1])
+      .addItem('Preview what will publish',    'preview' + p[1])
+      .addItem('Sync new photos now',          'sync'    + p[1])
+      .addItem('Stage source photos → Drop',   'stage'   + p[1]));
   });
   menu.addSeparator().addItem('Publish ALL brands', 'publishAll');
 
@@ -85,14 +86,17 @@ function onOpen() {
 function publishEureka()    { publishToSite(BRANDS.eureka); }
 function previewEureka()    { previewPublish(BRANDS.eureka); }
 function syncEureka()       { syncDropPhotos(BRANDS.eureka); }
+function stageEureka()      { importSourcePhotos(BRANDS.eureka); }
 
 function publishLaPopular() { publishToSite(BRANDS.lapopular); }
 function previewLaPopular() { previewPublish(BRANDS.lapopular); }
 function syncLaPopular()    { syncDropPhotos(BRANDS.lapopular); }
+function stageLaPopular()   { importSourcePhotos(BRANDS.lapopular); }
 
 function publishAmalfi()    { publishToSite(BRANDS.amalfi); }
 function previewAmalfi()    { previewPublish(BRANDS.amalfi); }
 function syncAmalfi()       { syncDropPhotos(BRANDS.amalfi); }
+function stageAmalfi()      { importSourcePhotos(BRANDS.amalfi); }
 
 function publishAll()       { ALL.forEach(function (cfg) { publishToSite(cfg); }); }
 function refreshCheatSheet(){ generateImageCheatSheet(ALL); }
@@ -594,6 +598,86 @@ function notifyBounces_(cfg, bounced, committed) {
     subject: cfg.brandName + ' photo sync — ' + bounced.length + ' need review',
     htmlBody: html
   });
+}
+
+/* ============================================================
+   SOURCE PHOTO STAGING
+   ============================================================ */
+
+/*
+ * Copies images from an arbitrary Drive folder into cfg.dropFolderId,
+ * renaming each file to the best-matching recipe slug for this brand.
+ * Run this once to bulk-import an existing photo library, then run
+ * "Sync new photos now" to process the drop folder as normal.
+ */
+function importSourcePhotos(cfg) {
+  var ui  = SpreadsheetApp.getUi();
+  var res = ui.prompt(
+    'Stage source photos — ' + cfg.brandName,
+    'Paste the Google Drive folder URL (or just the folder ID) that contains your existing photos:',
+    ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+
+  var input    = res.getResponseText().trim();
+  var folderId = extractFolderId_(input);
+  if (!folderId) { ui.alert('Could not parse a folder ID from that input. Try pasting just the folder ID.'); return; }
+
+  var srcFolder, dropFolder;
+  try { srcFolder  = DriveApp.getFolderById(folderId); }
+  catch (e) { ui.alert('Could not open that folder — make sure it\'s shared with this Google account.'); return; }
+  try { dropFolder = DriveApp.getFolderById(cfg.dropFolderId); }
+  catch (e) { ui.alert('Drop folder not accessible: ' + cfg.dropFolderId); return; }
+
+  var idx      = loadRecipeIndex_(cfg);
+  var allSlugs = Object.keys(idx.byKey).filter(function (k) { return idx.byKey[k].slug === k; });
+
+  var matched = [], unmatched = [], skipped = [];
+  var files = srcFolder.getFiles();
+
+  while (files.hasNext()) {
+    var f    = files.next();
+    var name = f.getName();
+    var mime = f.getMimeType();
+
+    if (mime.indexOf('image/') !== 0 && !isImageByName_(name)) { skipped.push(name); continue; }
+
+    var key   = slugify_(name);
+    var rec   = idx.byKey[key];
+    var slug  = rec ? rec.slug : closestSlug_(key, allSlugs);
+    var ext   = (name.match(/(\.[^.]+)$/) || ['.jpg'])[0].toLowerCase();
+    var dest  = (slug || key) + ext;
+
+    f.makeCopy(dest, dropFolder);
+
+    if (slug) matched.push({ orig: name, dest: dest });
+    else      unmatched.push({ orig: name, dest: dest });
+  }
+
+  var msg = matched.length + ' photos staged to the drop folder with matched slug names.\n';
+  if (unmatched.length) msg += unmatched.length + ' photos staged but no slug match found (they\'ll land in Review during sync).\n';
+  if (skipped.length)   msg += skipped.length   + ' non-image files skipped.\n';
+  msg += '\nRun "Sync new photos now" to process them.';
+
+  if (matched.length > 0) {
+    var detail = matched.slice(0, 20).map(function (r) { return '• ' + r.orig + ' → ' + r.dest; }).join('\n');
+    if (matched.length > 20) detail += '\n… and ' + (matched.length - 20) + ' more';
+    msg += '\n\nMatched:\n' + detail;
+  }
+  if (unmatched.length > 0) {
+    msg += '\n\nNo slug match:\n' + unmatched.map(function (r) { return '• ' + r.orig; }).join('\n');
+  }
+  ui.alert('Stage source photos — ' + cfg.brandName, msg, ui.ButtonSet.OK);
+}
+
+function extractFolderId_(input) {
+  var m = input.match(/\/folders\/([a-zA-Z0-9_-]{10,})/);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
+  return null;
+}
+
+function isImageByName_(name) {
+  return /\.(jpe?g|png|gif|webp|heic|heif|tiff?|bmp|avif)$/i.test(name);
 }
 
 /* ============================================================
