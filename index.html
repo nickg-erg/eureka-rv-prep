@@ -40,7 +40,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem 1.75rem;
+      height: 8rem;
+      padding: 1rem 1.5rem;
       border-radius: 12px;
       text-decoration: none;
       transition: filter 0.15s, transform 0.15s;
@@ -51,18 +52,15 @@
 
     a.brand img {
       display: block;
-      width: 100%;
-      height: auto;
+      max-width: 78%;
+      height: calc(8rem - 2rem);
+      width: auto;
+      object-fit: contain;
     }
 
     .brand-eureka    { background: #FF671D; }
     .brand-lapopular { background: #C99D66; }
     .brand-amalfi    { background: #1A1A1A; outline: 1px solid #2e2e2e; }
-
-    .brand-eureka    img { max-width: 82%; margin: 0 auto; }
-    .brand-lapopular img { max-width: 78%; margin: 0 auto; }
-    /* Amalfi wordmark is very wide/short — add vertical breathing room */
-    .brand-amalfi    img { max-width: 70%; margin: 0.5rem auto; }
 
     footer {
       font-size: 0.62rem;

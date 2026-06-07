@@ -482,13 +482,6 @@ function syncDropPhotos(cfg) {
           : 'Rename the file to the dish\'s exact slug, then move it back to Add New Photos Here.' });
       continue;
     }
-    if (rec.type !== 'plate' && rec.type !== 'menu') {
-      f.moveTo(review);
-      bounced.push({ name: name, url: f.getUrl(),
-        reason: '"' + rec.slug + '" is a ' + (rec.type || 'non-plate') + ' recipe; photos only show on Plate recipes.',
-        fix: 'If it should be a Plate recipe, set type = "plate" in the Recipes tab, then move the file back.' });
-      continue;
-    }
 
     var blob = getThumbnailJpeg_(f.getId(), cfg.thumbWidth || 1600);
     if (!blob) {
