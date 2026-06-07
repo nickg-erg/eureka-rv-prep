@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERG Recipe Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      gap: 2.5rem;
+    }
+
+    h1 {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #888;
+    }
+
+    .brands {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 22rem;
+    }
+
+    a.brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 1.4rem;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      transition: filter 0.15s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    a.brand:hover  { filter: brightness(1.12); transform: translateY(-1px); }
+    a.brand:active { filter: brightness(0.92); transform: translateY(0); }
+
+    a.brand .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.45);
+      flex-shrink: 0;
+    }
+
+    a.brand .arrow {
+      margin-left: auto;
+      opacity: 0.55;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>ERG Recipe Viewer</h1>
+
+  <div class="brands">
+    <a class="brand" href="eureka/" style="background:#FF671D;">
+      <span class="dot"></span>
+      Eureka
+      <span class="arrow">›</span>
+    </a>
+    <a class="brand" href="lapopular/" style="background:#C99D66;">
+      <span class="dot"></span>
+      La Popular
+      <span class="arrow">›</span>
+    </a>
+    <a class="brand" href="amalfillama/" style="background:#1A1A1A; outline: 1px solid #333;">
+      <span class="dot"></span>
+      Amalfi Llama
+      <span class="arrow">›</span>
+    </a>
+  </div>
+</body>
+</html>

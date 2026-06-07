@@ -45,7 +45,7 @@ var BRANDS = {
   }),
   amalfi: brand_({
     brandName: 'Amalfi Llama', concept: 'Amalfi Llama',
-    brandPrimary: '#1A1A1A', brandAccent: '#8A8A8A',
+    brandPrimary: '#1A1A1A', brandAccent: '#910707',
     outputPath: 'amalfillama/index.html', logoPath: 'amalfillama/logo.svg', imageDir: 'amalfillama/images',
     dropFolderId:   '1fB5BqCoveXFxCv91pkeJQaJnZ9Ft2c2b',
     doneFolderId:   '1YXPXJSfYMOhaKs_8QWcgcuYF70AclHjj',
