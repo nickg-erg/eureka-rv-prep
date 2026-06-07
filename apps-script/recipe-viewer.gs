@@ -80,6 +80,7 @@ function onOpen() {
       .addItem('Refresh photo cheat sheet',          'refreshCheatSheet')
       .addItem('Clean LP drop folder (one-time)',    'cleanDropFolderLaPopular')
       .addItem('Clean Amalfi drop folder (one-time)','cleanDropFolderAmalfi')
+      .addItem('Clean Amalfi review folder (one-time)','cleanAmalfiReviewFolder')
       .addItem('Delete .jpeg duplicates — Eureka',   'cleanJpegDupsEureka')
       .addItem('Delete .jpeg duplicates — La Popular','cleanJpegDupsLaPopular')
       .addItem('Delete .jpeg duplicates — Amalfi',   'cleanJpegDupsAmalfi')
@@ -991,4 +992,75 @@ function cleanDropFolderAmalfi() {
   }
   msg += '\nRenamed:\n' + renamed.map(function (r) { return '• ' + r; }).join('\n');
   ui.alert('Amalfi drop folder cleaned', msg, ui.ButtonSet.OK);
+}
+
+function cleanAmalfiReviewFolder() {
+  var ui     = SpreadsheetApp.getUi();
+  var folder = DriveApp.getFolderById(BRANDS.amalfi.reviewFolderId);
+
+  // One file that can be salvaged — rename and move to Drop for re-sync
+  var dropFolder = DriveApp.getFolderById(BRANDS.amalfi.dropFolderId);
+  var MOVE_TO_DROP = {
+    'empanada-3-55-42-pm.jpeg': 'empanadas.jpeg'
+  };
+
+  // All others: no matching slug (catering, boards, platters, LTOs, timestamps, modifiers)
+  var DELETE = [
+    'spaghetti-10-22-34-am.jpeg',
+    'shrimp-scampi2-1-25.jpeg',
+    'angel-hair-ai-frutti-di-mari.jpeg',
+    'brunch-avocado-toast.jpeg',
+    'hollandaise.jpeg',
+    'mini-tuna-board.jpeg',
+    'mini-tuna-platter.jpeg',
+    'burrata-tomato-board.jpeg',
+    'artichoke-prosciutto-board.jpeg',
+    'mini-hamachi-platter.jpeg',
+    'burrata-tomato-platter.jpeg',
+    'artichoke-prosciutto-solo.jpeg',
+    'surf-n-turf.jpeg',
+    'salsa-trio.jpeg',
+    'turkey.jpeg',
+    'seafood-platter.jpeg',
+    'blue-cheese-steak.jpeg',
+    'caesar-add-protein.jpeg',
+    'steak-and-eggs-all-concepts.jpeg'
+  ];
+
+  var fileMap = {};
+  var iter = folder.getFiles();
+  while (iter.hasNext()) {
+    var f = iter.next();
+    var n = f.getName();
+    if (!fileMap[n]) fileMap[n] = [];
+    fileMap[n].push(f);
+  }
+
+  var moved = [], deleted = [], notFound = [];
+
+  Object.keys(MOVE_TO_DROP).forEach(function (from) {
+    var to = MOVE_TO_DROP[from];
+    if (fileMap[from] && fileMap[from].length > 0) {
+      var file = fileMap[from][0];
+      file.setName(to);
+      dropFolder.addFile(file);
+      folder.removeFile(file);
+      moved.push(from + ' → Drop as ' + to);
+    } else {
+      notFound.push(from);
+    }
+  });
+
+  DELETE.forEach(function (name) {
+    if (fileMap[name] && fileMap[name].length > 0) {
+      fileMap[name].forEach(function (f) { f.setTrashed(true); });
+      deleted.push(name);
+    }
+  });
+
+  var msg = moved.length + ' moved to Drop, ' + deleted.length + ' deleted.\n';
+  if (notFound.length) msg += '\nNot found (skipped): ' + notFound.join(', ') + '\n';
+  if (moved.length) msg += '\nMoved to Drop:\n' + moved.map(function (r) { return '• ' + r; }).join('\n');
+  msg += '\n\nRun Sync again to pick up the moved file.';
+  ui.alert('Amalfi review folder cleaned', msg, ui.ButtonSet.OK);
 }
