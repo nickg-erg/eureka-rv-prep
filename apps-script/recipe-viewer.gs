@@ -483,9 +483,10 @@ function syncDropPhotos(cfg) {
       continue;
     }
 
-    var ext  = (name.match(/(\.[^.]+)$/) || ['.jpg'])[0].toLowerCase();
+    var ext    = (name.match(/(\.[^.]+)$/) || ['.jpg'])[0].toLowerCase();
     var isHeic = ext === '.heic' || ext === '.heif';
-    var blob = isHeic ? getThumbnailJpeg_(f.getId(), 2400) : f.getBlob();
+    // Always go through the thumbnail endpoint — resizes to target width AND converts HEIC→JPEG
+    var blob = getThumbnailJpeg_(f.getId(), cfg.thumbWidth || 1600);
     if (!blob) {
       f.moveTo(review);
       bounced.push({ name: name, url: f.getUrl(),
@@ -494,11 +495,13 @@ function syncDropPhotos(cfg) {
       continue;
     }
 
-    var commitExt = isHeic ? '.jpg' : ext;
-    var code = commitImage_(tok, cfg, rec.slug, blob, commitExt);
+    // Commit resized JPEG to GitHub
+    var code = commitImage_(tok, cfg, rec.slug, blob, '.jpg');
     if (code === 200 || code === 201) {
-      f.setName(rec.slug + ext);
-      f.moveTo(done);
+      // Save resized JPEG to Done folder (matches GitHub exactly), trash the original
+      blob.setName(rec.slug + '.jpg').setContentType('image/jpeg');
+      done.createFile(blob);
+      f.setTrashed(true);
       committed.push({ name: name, slug: rec.slug });
     } else {
       f.moveTo(review);
