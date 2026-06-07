@@ -1,57 +1,58 @@
-# Eureka Recipe Viewer — Architecture & Operations
+# ERG Recipe Viewer — Architecture & Operations
 
-**Status:** Live (Eureka brand). Single-brand today; a 3-brand refactor is planned (see §13).
+**Status:** Live (Eureka). La Popular + Amalfi Llama scaffolded; publish ready once their recipes
+are tagged in the Sheet.
 **Audience:** future maintainers (human or LLM). Source of truth for how the whole system fits
 together — Google Sheet → Apps Script → GitHub → GitHub Pages, plus the Drive photo pipeline.
 If this disagrees with memory or an old chat, trust this file (and verify against the live system).
 
 ## 1. What this is
 A back-of-house recipe viewer for Eureka Restaurant Group (ERG) kitchens, on iPad-mini kiosks.
-Culinary authors recipes in a Google Sheet; a "Publish" button bakes that data into a single
-static page on GitHub Pages. Plate (menu) recipes also get a photo via a Google Drive drop folder.
+Culinary authors recipes in a Google Sheet; a "Publish" button bakes that data into a static page
+on GitHub Pages — one page per brand. Plate (menu) recipes also get a photo via a Drive drop folder.
 
 Two guiding properties:
 - **Recipe data is offline-capable** — embedded in the HTML, so the viewer works without a
   network once loaded. (Images load over wifi; see §5.)
 - **Everything is a deliberate manual action** — publishing recipes and photos are both button
-  clicks. Nothing runs automatically in the background today.
+  clicks. Nothing runs automatically in the background.
 
 ## 2. System at a glance
+
 ```
-                 Google Sheet  ──(Recipe Viewer ▸ Publish)──►  GitHub repo: nickg-erg/eureka-rv
-   (Recipes / Ingredients / Steps)            Apps Script        index.html  (data spliced in)
-                 │  bound Apps Script project  (publish.gs)               │
-                 │                                                        ▼
-                 │                                                GitHub Pages (auto-deploy)
-                 │                                        https://nickg-erg.github.io/eureka-rv/
-                 │                                                        ▲
-   Google Drive  │  (Recipe Viewer ▸ Sync new photos now)                │ images/<slug>.jpg
-   "Add New Photos Here" ──► Apps Script (image-sync.gs) ────────────────┘
-        (drop a photo named like the dish)     normalize + commit
+              Google Sheet  ──(Recipe Viewer ▸ [Brand] ▸ Publish)──►  GitHub repo: nickg-erg/erg-recipe-viewer
+  (Recipes / Ingredients / Steps)        Apps Script (RVLib library)    /<brand>/index.html  (data spliced in)
+              │  bound Apps Script project (recipe-viewer-bound.gs)                │
+              │  library project          (recipe-viewer-library.gs)              ▼
+              │                                                           GitHub Pages (auto-deploy)
+              │                                              https://nickg-erg.github.io/erg-recipe-viewer/<brand>/
+              │                                                                   ▲
+  Google Drive  (Recipe Viewer ▸ [Brand] ▸ Sync new photos now)                  │ <brand>/images/<slug>.jpg
+  "Add New Photos Here" ──► Apps Script ────────────────────────────────────────┘
+       (drop a photo named like the dish)    normalize + commit
 ```
 
 | Component | What it is | Where |
 |---|---|---|
-| Recipe Source (Sheet) | Authoring DB: Recipes/Ingredients/Steps | Sheet `1SIa3itLid9uSIWH1ViEqWjgX1_jH6VmkW9pPgcsspCU` |
-| Apps Script project | Publish engine + photo sync, bound to the Sheet | Extensions ▸ Apps Script on that Sheet |
-| Repo | Holds `index.html` and `images/` | github.com/nickg-erg/eureka-rv (branch `main`) |
-| Live site | The kiosk viewer | https://nickg-erg.github.io/eureka-rv/ |
-| Photo folders | Drop / archive / review for dish photos | Drive: EUREKA ▸ DISH PICS ▸ Recipe Viewer Photos |
+| Recipe Source (Sheet) | Authoring DB: Recipes / Ingredients / Steps | Kitchen Ops shared drive → Recipe Viewer → Recipe Viewer Source |
+| Bound Apps Script | Menu wiring + per-brand CONFIG, delegates to RVLib | Extensions ▸ Apps Script on that Sheet (project: "ERG Recipe Viewer") |
+| Library Apps Script | All publish + photo-sync logic | Standalone project "recipe-viewer-library"; attached as `RVLib` |
+| Repo | Template, per-brand `index.html`, images, this doc | github.com/nickg-erg/erg-recipe-viewer (`main`) |
+| Live sites | Kiosk viewers | `…github.io/erg-recipe-viewer/eureka/`, `/lapopular/`, `/amalfillama/` |
+| Photo folders | Drop / done / review per brand | Kitchen Ops → Recipe Viewer → Recipe Viewer Photos → [Brand] |
 
 ## 3. Roles — who does what
-- **Culinary (authors):** add/edit rows in the Sheet (Recipes, Ingredients, Steps); take and
-  name dish photos; drop them in the photo folder. They touch the Sheet and Drive only — never GitHub.
-- **Recipe manager / publisher** (culinary lead or IT): runs **Publish to site** and **Sync new
-  photos now** from the Sheet menu when changes are ready.
-- **IT / Admin:** owns the GitHub token, the Apps Script, the dropdowns, and troubleshooting.
-  These are hidden behind an email-gated **Admin (IT)** submenu (§7); admins are listed in the
-  `ADMINS` array in `publish.gs`.
-- **The system (Apps Script):** on Publish, reads the Sheet and commits data into the repo; on
-  Sync, reads the drop folder, normalizes photos, commits them. Pages redeploys on every commit.
+- **Culinary (authors):** add/edit rows in the Sheet; name and drop dish photos. Touch Sheet + Drive only — never GitHub.
+- **Recipe manager / publisher** (culinary lead or IT): runs **Publish to site** and **Sync new photos now** from the Sheet menu.
+- **IT / Admin:** owns the GitHub token, Apps Script versions, dropdowns. Hidden behind an email-gated **Admin (IT)** submenu; admins are listed in `ADMINS` in the bound script.
+- **The system (Apps Script):** on Publish, reads the Sheet and commits per-brand `index.html`; on Sync, reads the drop folder, normalizes photos, commits them. Pages redeploys on every commit.
 
 ## 4. The data — Google Sheet
-File: "Recipe Viewer - Eureka - Recipe Source", ID `1SIa3itLid9uSIWH1ViEqWjgX1_jH6VmkW9pPgcsspCU`,
-in a Shared Drive. The Apps Script project is **bound** to this Sheet (Extensions ▸ Apps Script).
+
+File: **Recipe Viewer Source** in the Kitchen Ops shared drive.
+The Apps Script project "ERG Recipe Viewer" is **bound** to this Sheet.
+
+All three brands share one Sheet. The `concept` column partitions rows by brand.
 
 ### Core tabs (read by Publish)
 Joined by **`slug`** (unique recipe key). Columns are read **by header name**, not position —
@@ -62,239 +63,200 @@ column order can change safely, but header text must match.
 |---|---|
 | `slug` | unique key, lowercase-hyphen (e.g. `poke-bowl`). Joins to Ingredients/Steps. |
 | `name` | display name |
-| `concept` | brand/concept (e.g. "Eureka") |
-| `type` | **`prep`** or **`plate`** (was `menu`; renamed). Drives filtering + whether it gets a photo. |
+| `concept` | brand — `Eureka` / `La Popular` / `Amalfi Llama`. **Required** — rows without a concept are skipped at publish. |
+| `type` | `prep` or `plate`. Drives filtering + whether a row gets a photo. |
 | `yield_1x`, `yield_2x` | batch yields |
 | `prep_time` | est. prep time |
 | `shelf_life` | shelf life |
 | `plate` | plating/serving note |
-| `image_url` | **vestigial** — unused (viewer derives the path from the slug). Safe to delete. |
 | `note` | free-text note shown on the detail page |
-| `status` | **`live`** or **`draft`**. Only `live` recipes publish. |
-| `category` | grouping (e.g. "Signature Burgers", "Sides", "Misc") |
+| `status` | `live` or `draft`. Only `live` rows publish. |
+| `category` | grouping (e.g. "Signature Burgers", "Sides") |
 
 **Ingredients** (many rows per recipe): `slug`, `order` (sort), `ingredient`, `qty_1x`,
-`qty_2x`, `uom`, `step_group`, `links_to` (points a "PREP …" ingredient at its prep recipe's slug).
+`qty_2x`, `uom`, `step_group`, `links_to` (points a "PREP …" ingredient at its prep recipe's slug), `concept`.
 
-**Steps** (many rows per recipe): `slug`, `step_no` (sort), `text`, `step_group`.
+**Steps** (many rows per recipe): `slug`, `step_no` (sort), `text`, `step_group`, `concept`.
 
-### Validation (dropdowns) — rebuilt by `setupValidation`
-- Ingredients **col F (`uom`)** — unit list; **rejects off-list values** (`allowInvalid:false`).
-  Adding a new unit requires clearing/extending the validation first (bit us twice).
-- Recipes **col D (`type`)** — `prep` / `plate`.
-- Recipes **col L (`status`)** — `live` / `draft`.
+> Child rows (Ingredients/Steps) with a blank `concept` are treated as legacy and attached to
+> any brand that owns the parent recipe. Tag them to avoid ambiguity.
+
+### Validation (dropdowns) — rebuilt by `Admin (IT) → Set up dropdowns`
+- Ingredients `uom` — unit list; rejects off-list values (`allowInvalid:false`).
+- Recipes `type` — `prep` / `plate`.
+- Recipes `status` — `live` / `draft`.
+- All tabs `concept` — `Eureka` / `La Popular` / `Amalfi Llama`.
 
 ### Auxiliary tabs (auto-generated; not read by Publish)
 - **Photo Cheat Sheet** — every Plate's exact filename + uploaded yes/no (`generateImageCheatSheet`).
-- **Image Sync Log** — audit trail of each photo sync (`logSync_`).
-- **Data Gaps** — recipes missing ingredients/steps (`findMissingData`, diagnostic).
-- **README** — operator quick-guide for culinary.
+- **Image Sync Log** — audit trail of each photo sync.
 
-## 5. The viewer — `index.html`
-A **single static HTML file** in the repo. Recipe data is embedded between two markers:
-```
+## 5. The template — `template/index.html`
+A single shared HTML template in the repo. Each brand's publish fetches it, injects brand tokens
+and that brand's recipe JSON, and commits the result to `/<brand>/index.html`.
+
+### Token placeholders (replaced at publish)
+| Placeholder | Replaced with |
+|---|---|
+| `{{BRAND_NAME}}` | e.g. `Eureka` |
+| `{{BRAND_PRIMARY}}` | hex colour (e.g. `#FF671D`) |
+| `{{BRAND_ACCENT}}` | hex colour |
+| `{{BRAND_LOGO_SVG}}` | inline SVG content from `/<brand>/logo.svg` |
+
+### Recipe data markers (must not be removed)
+```js
 /* RECIPES:START */
   const RECIPES = [ … ];
 /* RECIPES:END */
 ```
-Publish only rewrites text **between these markers**; the rest (markup, styles, logic) is
-hand-maintained. **Do not remove or rename the markers.**
+Publish only rewrites text between these markers; the rest is hand-maintained.
 
-Behavior:
-- **List / search sidebar** — grouped alphabetically; each row shows a muted category subline
-  (`TYPE · CATEGORY`; the `TYPE ·` prefix drops when a type filter is active).
-- **Type filter** — PREP vs PLATE.
-- **Detail page** — name, metadata pills (prep time, shelf life, yields), note, ingredients
-  table (1x/2x columns, empty columns hide), steps.
-- **Plate hero image** — for `type === 'plate'` only, loads `images/<slug>.jpg`. `.dish-hero`:
-  `aspect-ratio:4/3`, `object-fit:cover`, `max-height:42vh`, `border-radius:4px`; container
-  starts `display:none`, revealed on `load`, left hidden on `error` (404). Plates without a
-  photo and all preps show nothing — no gap, no broken icon. Preps never request an image.
-- **Offline:** data is embedded (works offline once loaded); images fetch over network and
-  fail gracefully if offline.
-- Eureka-branded; sized for iPad-mini kiosks.
+### Viewer behaviour
+- **List / search sidebar** — grouped alphabetically; category subline; type filter (PREP / PLATE).
+- **Detail page** — name, metadata pills (prep time, shelf life, yields), note, ingredients table
+  (1x/2x columns, empty columns hide), steps.
+- **Plate hero image** — for `type === 'plate'` only, loads `<brand>/images/<slug>.jpg`.
+  Container starts `display:none`, revealed on `load`, stays hidden on `error` (404). Preps never
+  request an image.
+- **Offline:** data is embedded (works offline once loaded); images fetch over network and fail
+  gracefully if offline.
+- Sized for iPad-mini kiosks.
 
-Viewer code changes happen directly in `index.html`. Publish never touches anything outside the markers.
+## 6. Apps Script — two projects
 
-## 6a. Editing surfaces — what's editable where (and with which tool)
+### 6a. Bound project — "ERG Recipe Viewer"
+File: `apps-script/recipe-viewer-bound.gs` (repo mirror only — live code is in Apps Script).
 
-The system spans two codebases that do NOT share a filesystem. Knowing which side a thing
-lives on tells you which tool to reach for.
+Thin layer: per-brand `BRANDS` CONFIG objects + menu wiring. All real logic delegates to `RVLib`.
 
-### GitHub side — Claude Code works here
-Everything in the repo (`github.com/nickg-erg/eureka-rv`):
-- `index.html` — the entire viewer: layout, styles, list/search, detail page, plate hero
-  image logic, branding. All hand-editable.
-- `images/<slug>.jpg` — the photos.
-- `ARCHITECTURE.md` — this doc.
+**Key constants:**
+- `REPO` — `owner`, `repo`, `branch`, `templatePath` (shared by all brands).
+- `TABS` — `recipesTab`, `ingredientsTab`, `stepsTab` (shared).
+- `ADMINS` — email list for the Admin (IT) submenu gate.
+- `NOTIFY_EMAIL` — bounce notification recipient.
+- `BRANDS.eureka / .lapopular / .amalfi` — per-brand: colours, paths, Drive folder IDs.
 
-Anything about how the viewer *looks or behaves* is here, so Claude Code (or direct GitHub
-editing) is the right tool. The planned config-driven `index.html` template for 3-brand is
-also GitHub-side.
+### 6b. Library project — "recipe-viewer-library"
+File: `apps-script/recipe-viewer-library.gs` (repo mirror only).
 
-### Apps Script side — Claude Code CANNOT reach this
-The bound Apps Script project on the Sheet:
-- `publish.gs` — publish pipeline, the Recipe Viewer menu, GitHub commit logic, validation/dropdowns.
-- `image-sync.gs` — the photo drop → normalize → commit pipeline.
-- (`one-time-import.gs` / `maintenance.gs` — migration + diagnostics.)
+Attached to the bound project as identifier `RVLib`. Contains all logic:
+- `publishToSite(cfg)` / `previewPublish(cfg)` — fetch template, build recipes, diff, confirm, commit.
+- `syncDropPhotos(cfg)` — Drive drop → normalize → commit pipeline.
+- `setupValidation(opts)` — apply dropdowns to all tabs.
+- `generateImageCheatSheet(cfgs)` — write the Photo Cheat Sheet tab.
+- `setGithubToken()` — store PAT in library Script Properties (shared by all brands).
 
-These are not in the repo and there's no local filesystem for them. Edits happen in the
-Apps Script editor — paste full-file replacements. Claude Code has no access here.
+Token is stored in the **library's** Script Properties (`GITHUB_TOKEN`) so one PAT serves all brands.
 
-> The one bridge: the `.gs` scripts *write into* the GitHub repo (they commit `index.html`
-> and `images/`), but the script source itself is Apps Script-side, not in the repo.
+### 6c. Editing surfaces
+| What | Where to edit | Tool |
+|---|---|---|
+| Viewer look/feel, template HTML | `template/index.html` in repo | Claude Code / GitHub |
+| Brand logos | `eureka/logo.svg`, `lapopular/logo.svg`, `amalfillama/logo.svg` | GitHub file upload |
+| Per-brand CONFIG, folder IDs | `apps-script/recipe-viewer-bound.gs` → paste into Apps Script editor | Apps Script editor |
+| Publish/sync/validation logic | `apps-script/recipe-viewer-library.gs` → paste into library project, deploy new version, bump version in bound project | Apps Script editor |
+| Recipe data | Google Sheet | Sheet UI |
 
-### Rule of thumb
-- Viewer / template / UI / branding → **GitHub repo (Claude Code).**
-- Publish logic, photo-sync logic, menu, validation → **Apps Script editor (paste full files).**
-- The 3-brand shared library (§13) is **Apps Script-side**; its config-driven `index.html`
-  template is **GitHub-side**.
+> Apps Script source is mirrored in `apps-script/` for version history only. Edits there don't
+> take effect until pasted into the Apps Script editor (and, for the library, a new version deployed).
 
-## 7. Publish pipeline — `publish.gs`
-Bound to the Sheet. Builds recipe data and commits it into `index.html`.
+## 7. Publish pipeline
+### Menu (`onOpen`)
+Per-brand submenus: **Publish to site**, **Preview what will publish**, **Sync new photos now**.
+Top-level: **Publish ALL brands**.
+Admins only: **Admin (IT)** → Refresh photo cheat sheet, Set/update GitHub token, Set up dropdowns.
 
-### Menu (`onOpen`) — title "Recipe Viewer"
-Everyone: **Publish to site** (`publishToSite`), **Preview what will publish** (`previewPublish`),
-**Sync new photos now** (`syncDropPhotos`, §8).
-Admins only (email in `ADMINS`) → **Admin (IT)** submenu: Build/refresh photo cheat sheet
-(`generateImageCheatSheet`), Install photo sync hourly (`installImageSyncTrigger`, optional —
-currently not installed), Set/update GitHub token (`setGithubToken`), Set up dropdowns
-(`setupValidation`).
+### Publish flow (`publishToSite(cfg)`)
+1. Read token from library Script Properties; abort if missing.
+2. `buildRecipes_(cfg)` — read the three tabs, filter by `concept` + `status=live`, attach sorted ingredients + steps, strip empty fields.
+3. Fetch `template/index.html` and `/<brand>/logo.svg` from the repo.
+4. Fetch current `/<brand>/index.html` (sha + text; 404 ok on first publish).
+5. `diffRecipes_()` — compute new/changed/removed; show confirmation dialog.
+6. `renderTemplate_()` — inject brand tokens + recipe JSON.
+7. PUT rendered HTML back to the repo (commit). Pages redeploys in ~1 minute.
 
-### Token
-`setGithubToken` stores a GitHub **fine-grained PAT** (this repo, **Contents: R/W**) in
-**Script Properties** key **`GITHUB_TOKEN`** — never in code or the Sheet.
+`previewPublish` runs steps 2–5 only (dry run, no commit).
 
-### Publish flow (`publishToSite`)
-1. Read token; abort if missing.
-2. `buildRecipes_()` — read the three tabs (`readObjects_` → `groupBy_` by slug), keep only
-   `status==='live'`, attach sorted ingredients + steps, `clean_` away empty fields.
-3. `fetchCurrentHtml_()` — GET current `index.html` (text + sha).
-4. `extractLiveRecipes_()` + `diffRecipes_()` — New/Changed/Removed summary; confirm.
-5. Splice new JSON between the markers.
-6. PUT back with the sha (a commit). Pages redeploys.
-`previewPublish` runs steps 2–4 only (dry run).
+## 8. Photo pipeline
 
-### GitHub helpers
-`ghApi_`, `ghHeaders_`, `fetchCurrentHtml_`, `extractLiveRecipes_`, `canon_`, `diffRecipes_`, `diffSummary_`.
-
-### CONFIG (top of `publish.gs`)
-`owner:'nickg-erg'`, `repo:'eureka-rv'` (← update from `'eureka-rv-prep'`), `path:'index.html'`,
-`branch:'main'`, `recipesTab:'Recipes'`, `ingredientsTab:'Ingredients'`, `stepsTab:'Steps'`.
-
-## 8. Image pipeline — `image-sync.gs` + Drive folders
-### Folder tree (photo Shared Drive)
+### Drive folder tree
 ```
-EUREKA  (10CBaEOZdHdsReETVvgk4AE-RKh93urSr)
-└─ DISH PICS  (1XYwHoMlvr40xq8fiZd-ngRdrZ22TdrwW)
-   ├─ CURRENT  (1vYqhdRs-YVFJj7VT_RnefdlXXjEfRcAq)   ← originals library (raw phone photos)
-   └─ Recipe Viewer Photos  (1ZdbiC2haa6nlBvr8hjV8sXywQmso7iHM)
-      ├─ Add New Photos Here          (183AGv_ol_pDT-06u4b9ogk2fNFnzmrsr)  = DROP_FOLDER_ID
-      ├─ Successfully Uploaded Photos  (1gHU5PMr2TU6-h0rj-TBcMOYhN-WY5msN)  = DONE_FOLDER_ID
-      └─ Upload Failed - Needs Review  (1Y64622PugB9_6wzVqnC1c4kAtNdhCN5U)  = REVIEW_FOLDER_ID
+Kitchen Ops (shared drive)
+└─ Recipe Viewer
+   └─ Recipe Viewer Photos
+      ├─ Eureka
+      │   ├─ Add New Photos Here          (183AGv_ol_pDT-06u4b9ogk2fNFnzmrsr)
+      │   ├─ Successfully Uploaded Photos  (1gHU5PMr2TU6-h0rj-TBcMOYhN-WY5msN)
+      │   └─ Upload Failed - Needs Review  (1Y64622PugB9_6wzVqnC1c4kAtNdhCN5U)
+      ├─ La Popular
+      │   ├─ Add New Photos Here          (1MVyGWQSy3nqvKSg-MVSjslpFUPiTE2eH)
+      │   ├─ Successfully Uploaded Photos  (1Ggk9tCneneUkf8tIdYiOA5m_Ocwn4AuI)
+      │   └─ Upload Failed - Needs Review  (1fe3QTTuu7K1Ad8pAuuNs9ABkm_wLrFPX)
+      └─ Amalfi Llama
+          ├─ Add New Photos Here          (1fB5BqCoveXFxCv91pkeJQaJnZ9Ft2c2b)
+          ├─ Successfully Uploaded Photos  (1YXPXJSfYMOhaKs_8QWcgcuYF70AclHjj)
+          └─ Upload Failed - Needs Review  (1JSLmUgSCHYopDeOFHhGuFK3aqpPVpRaG)
 ```
-Folder IDs are permanent — rename/move folders freely without touching the script.
+Folder IDs are permanent — rename/move folders freely.
 
-### End-to-end flow (`syncDropPhotos`, run from the menu)
-1. Read `GITHUB_TOKEN`.
-2. `loadRecipeIndex_()` — index every recipe by slug **and** slugified name; note which are plates.
+### End-to-end flow (`syncDropPhotos(cfg)`)
+1. Read token.
+2. `loadRecipeIndex_(cfg)` — index brand's recipes by slug + slugified name.
 3. For each file in **Add New Photos Here**:
-   - `slugify_(filename)` (lowercase, strip extension, non-alphanumeric → hyphen).
-   - **No matching recipe** → move to **Upload Failed - Needs Review**; record a bounce with a
-     "did you mean `<closest-slug>`?" suggestion (Levenshtein).
-   - **Matches a prep (non-plate)** → bounce ("photos only show on Plate recipes").
-   - **Matches a plate** → `getThumbnailJpeg_()` → `commitImage_()` → rename original to
-     `<slug>.<ext>` and move to **Successfully Uploaded Photos**.
-4. Append to **Image Sync Log**; if anything bounced, email a clear linked summary to `NOTIFY_EMAIL`.
+   - `slugify_(filename)` — lowercase, strip extension, non-alphanumeric → hyphen.
+   - **No match** → move to **Upload Failed - Needs Review**; email a bounce with closest-slug suggestion (Levenshtein).
+   - **Matches a prep** → bounce ("photos only show on Plate recipes").
+   - **Matches a plate** → `getThumbnailJpeg_()` → `commitImage_()` → rename + move to **Successfully Uploaded Photos**.
+4. Append to **Image Sync Log**; email bounce summary if anything failed.
 
-### The normalize trick (and why)
-Phone photos are HEIC/large; the viewer needs web JPEG, and Apps Script can't transcode/resize.
-The Drive **REST API** (`thumbnailLink`) would work but needs the Drive API enabled on the
-Apps Script project's Cloud project — a **locked, Google-managed project we can't access** (the
-"request access / Project Mover" screen is a dead end). So we use the Drive **web** thumbnail
-endpoint, which needs no Drive API:
+### The normalize trick
+Apps Script can't transcode HEIC/large photos. The Drive web thumbnail endpoint yields a ~1600px JPEG without needing the Drive API:
 ```
 https://drive.google.com/thumbnail?id=<fileId>&sz=w1600
 ```
-`getThumbnailJpeg_` fetches it (unauthenticated, then `Bearer ScriptApp.getOAuthToken()`),
-yielding a ~1600px JPEG (~0.5 MB). This is the keystone of the no-extra-service design; if it
-ever breaks, the fallback is a real image service (e.g. Cloudinary).
+`getThumbnailJpeg_` fetches unauthenticated then falls back to `Bearer ScriptApp.getOAuthToken()`.
+If this endpoint ever breaks, the fallback is a real image service (e.g. Cloudinary).
 
-### Commit (`commitImage_`)
-Always writes **`images/<slug>.jpg`** regardless of source extension (GET sha if present → PUT;
-overwrite = update). A re-drop simply updates the live image.
+### Image commit
+Always writes `<brand>/images/<slug>.jpg` regardless of source extension. Re-dropping a photo updates the live image.
 
-### Cheat sheet (`generateImageCheatSheet` + `listRepoImages_`)
-Writes the **Photo Cheat Sheet** tab: each Plate's name → exact filename (`<slug>.jpg`) →
-uploaded yes/no (one GitHub directory listing). Preps don't appear (no photos).
+## 9. Secrets & permissions
+- **GitHub PAT** — fine-grained, `erg-recipe-viewer` repo only, Contents R/W. Stored in **library** Script Properties as `GITHUB_TOKEN`. Rotate via Admin (IT) → Set/update GitHub token.
+- **Google auth** — runs as the authorizing ERG Workspace user; first run prompts Drive + UrlFetch + Mail scopes (expected).
+- **Site is fully public** — GitHub Pages has no access control. Anything published is world-readable.
 
-### Scheduling
-**Manual only** — no active trigger. `installImageSyncTrigger` is an opt-in (hourly) escape
-hatch, deliberately left uninstalled so photos publish on a click like recipes.
-
-### `image-sync.gs` constants
-`DROP_FOLDER_ID`, `DONE_FOLDER_ID`, `REVIEW_FOLDER_ID` (above); `NOTIFY_EMAIL` (currently Nick's
-address; becomes `culinary@…, nick…` at ship); `IMAGE_DIR='images'`; `THUMB_WIDTH=1600`. Reuses
-`CONFIG`, `ghHeaders_`, `readObjects_`, `GITHUB_TOKEN` from `publish.gs` (same project).
-
-## 9. Secrets, permissions, accounts
-- **GitHub PAT** — fine-grained, this repo only, Contents R/W. In Script Properties as
-  `GITHUB_TOKEN`. Rotate via Admin ▸ Set/update GitHub token.
-- **Google auth** — the Apps Script runs as the authorizing ERG Workspace user; first runs
-  prompt for Drive + external-request + Mail scopes (expected).
-- **Site is fully public** — GitHub Pages has no access control. Anything published is world-readable (§13).
-
-## 10. Constraints, gotchas & known issues
-- **UOM validation rejects off-list values** — clear/extend Ingredients col-F before writing a new unit.
-- **Slug uniqueness matters** — matching + join assume unique slugs. Known dup to clean up:
-  `side-caesar-salad` vs `sides-caesar-salad`.
+## 10. Constraints & gotchas
+- **`concept` is required on Recipes rows** — blank concept = skipped at publish.
+- **Child rows with blank `concept`** are treated as legacy and matched to any brand owning that slug. Tag them.
+- **UOM validation rejects off-list values** — clear/extend the dropdown before writing a new unit.
+- **Slug uniqueness matters** — join + matching assume unique slugs per brand.
 - **Images are Plate-only** — viewer renders a hero only for `type==='plate'`; sync refuses preps.
-- **Drive-API path unavailable** (locked Cloud project) — web thumbnail endpoint is the workaround (§8).
-- **Repo rename redirect** — `eureka-rv-prep` → `eureka-rv`; update `CONFIG.repo`.
-- **Folder renames/moves are ID-safe** — cosmetic, never touch the script.
-- **`image_url` column is vestigial** — viewer derives `images/<slug>.jpg` from the slug.
-- **First publish from a fresh file** can't compute a diff — normal.
+- **Drive API path unavailable** (locked Cloud project) — web thumbnail endpoint is the workaround.
+- **Library version must be bumped** after editing library code — bound project pins a specific version; "latest" is only an option during development.
 
 ## 11. Common tasks
-- **Add/edit a recipe:** rows in Recipes (+ Ingredients/Steps by slug); set `type` and `status`;
-  Preview → Publish. New recipes start `draft`.
-- **Add a photo (Plate only):** name file the dish (Photo Cheat Sheet = exact name) → drop in
-  **Add New Photos Here** → **Sync new photos now** → lands in **Successfully Uploaded Photos**,
-  live next deploy.
-- **A photo bounced** (email + Upload Failed - Needs Review): rename to exact/suggested slug,
-  confirm it's a Plate, move back to **Add New Photos Here**, re-sync.
-- **Check what's missing:** run `findMissingData` → **Data Gaps** tab.
-- **Rotate token:** Admin ▸ Set/update GitHub token.
+- **Add/edit a recipe:** rows in Recipes (+ Ingredients/Steps by slug); set `concept`, `type`, `status`; Preview → Publish.
+- **Add a photo (Plate only):** name file to exact slug (Photo Cheat Sheet shows the exact name) → drop in brand's **Add New Photos Here** → **Sync new photos now**.
+- **A photo bounced:** rename to exact/suggested slug, confirm it's a Plate, move back to **Add New Photos Here**, re-sync.
+- **Rotate token:** Admin (IT) → Set/update GitHub token.
+- **Update library logic:** paste new code into the library Apps Script project → Deploy → New deployment (Library) → note new version number → open bound project → Libraries → bump `RVLib` to new version → Save.
+- **Add a new brand:** add a `brand_(...)` entry in the bound script, create Drive folders, add a `concept` value to `setupValidation`, add logo SVG and brand subdir to repo, re-run Set up dropdowns.
 
-## 12. Migration scripts (one-time, historical)
-`one-time-import.gs` held the original migration (`importMenuData` + source IDs),
-`verifyMenuImport`, `backfillMiscIngredients`, the `menu`→`plate` rename (`renamePlateType`),
-plus the still-useful `findMissingData`. Migration jobs are **spent** — recommended: keep
-`findMissingData` (move to `maintenance.gs`), retire the rest. Recommended project name: **"Eureka Recipe Viewer"**.
-
-## 13. Roadmap
-- **3-brand replication (next major work)** — La Popular + Amalfi Llama. Shared **Apps Script
-  Library**; each brand's Sheet = thin bound `CONFIG` calling the library (fix once, bump
-  version, all three update). Make `index.html` **config-driven** (one template; publish writes
-  per-brand branding + data per repo). Photo folders + sync are already brand-generic by ID/CONFIG.
-- **Guided recipe entry (maybe)** — a plain Google Form can't capture variable-length
-  ingredients/steps; **AppSheet** (same Sheet, native parent→child) fits if pursued.
-- **Password protection (parked)** — Pages is public; client-side passwords are weak; real
-  gating needs something like Cloudflare Access.
-
-## 14. Quick reference
+## 12. Quick reference
 | Thing | Value |
 |---|---|
-| Live site | https://nickg-erg.github.io/eureka-rv/ |
-| Repo | github.com/nickg-erg/eureka-rv · `main` · `index.html` + `images/` |
-| Sheet | `1SIa3itLid9uSIWH1ViEqWjgX1_jH6VmkW9pPgcsspCU` (bound Apps Script) |
-| Token | Script Property `GITHUB_TOKEN` (fine-grained PAT, Contents R/W) |
-| Drop folder | Add New Photos Here · `183AGv_ol_pDT-06u4b9ogk2fNFnzmrsr` |
-| Done folder | Successfully Uploaded Photos · `1gHU5PMr2TU6-h0rj-TBcMOYhN-WY5msN` |
-| Review folder | Upload Failed - Needs Review · `1Y64622PugB9_6wzVqnC1c4kAtNdhCN5U` |
-| Photos parent | Recipe Viewer Photos · `1ZdbiC2haa6nlBvr8hjV8sXywQmso7iHM` |
-| Originals | CURRENT · `1vYqhdRs-YVFJj7VT_RnefdlXXjEfRcAq` |
-| Apps Script files | `publish.gs`, `image-sync.gs` (+ retire `one-time-import.gs` → `maintenance.gs`) |
-| Image path | `images/<slug>.jpg` (always JPEG, any source format) |
+| Repo | github.com/nickg-erg/erg-recipe-viewer · `main` |
+| Live — Eureka | `…github.io/erg-recipe-viewer/eureka/` |
+| Live — La Popular | `…github.io/erg-recipe-viewer/lapopular/` |
+| Live — Amalfi Llama | `…github.io/erg-recipe-viewer/amalfillama/` |
+| Sheet | Kitchen Ops shared drive → Recipe Viewer → Recipe Viewer Source |
+| Token | Library Script Property `GITHUB_TOKEN` (fine-grained PAT, Contents R/W) |
+| Bound script project | "ERG Recipe Viewer" (bound to Sheet) |
+| Library script project | "recipe-viewer-library" (identifier `RVLib`) |
+| Template | `template/index.html` |
+| Eureka drop/done/review | `183AGv_ol_pDT-06u4b9ogk2fNFnzmrsr` / `1gHU5PMr2TU6-h0rj-TBcMOYhN-WY5msN` / `1Y64622PugB9_6wzVqnC1c4kAtNdhCN5U` |
+| La Popular drop/done/review | `1MVyGWQSy3nqvKSg-MVSjslpFUPiTE2eH` / `1Ggk9tCneneUkf8tIdYiOA5m_Ocwn4AuI` / `1fe3QTTuu7K1Ad8pAuuNs9ABkm_wLrFPX` |
+| Amalfi Llama drop/done/review | `1fB5BqCoveXFxCv91pkeJQaJnZ9Ft2c2b` / `1YXPXJSfYMOhaKs_8QWcgcuYF70AclHjj` / `1JSLmUgSCHYopDeOFHhGuFK3aqpPVpRaG` |
+| Apps Script mirror | `apps-script/` in repo (version history only — not live code) |
 
 *Keep this file updated whenever the system changes — it's the first thing a future maintainer (or LLM) should read.*

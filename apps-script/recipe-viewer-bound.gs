@@ -37,13 +37,17 @@ const BRANDS = {
     brandName: 'La Popular', concept: 'La Popular',
     brandPrimary: '#C99D66', brandAccent: '#2E6E73',   // accent = PLACEHOLDER (no official secondary)
     outputPath: 'lapopular/index.html', logoPath: 'lapopular/logo.svg', imageDir: 'lapopular/images',
-    dropFolderId: '', doneFolderId: '', reviewFolderId: ''   // TODO: create Drive folders, paste IDs
+    dropFolderId:   '1MVyGWQSy3nqvKSg-MVSjslpFUPiTE2eH',
+    doneFolderId:   '1Ggk9tCneneUkf8tIdYiOA5m_Ocwn4AuI',
+    reviewFolderId: '1fe3QTTuu7K1Ad8pAuuNs9ABkm_wLrFPX'
   }),
   amalfi: brand_({
     brandName: 'Amalfi Llama', concept: 'Amalfi Llama',
     brandPrimary: '#1A1A1A', brandAccent: '#8A8A8A',   // B&W; accent = PLACEHOLDER
     outputPath: 'amalfillama/index.html', logoPath: 'amalfillama/logo.svg', imageDir: 'amalfillama/images',
-    dropFolderId: '', doneFolderId: '', reviewFolderId: ''   // TODO: create Drive folders, paste IDs
+    dropFolderId:   '1fB5BqCoveXFxCv91pkeJQaJnZ9Ft2c2b',
+    doneFolderId:   '1YXPXJSfYMOhaKs_8QWcgcuYF70AclHjj',
+    reviewFolderId: '1JSLmUgSCHYopDeOFHhGuFK3aqpPVpRaG'
   })
 };
 const ALL = [BRANDS.eureka, BRANDS.lapopular, BRANDS.amalfi];
