@@ -1043,8 +1043,7 @@ function cleanAmalfiReviewFolder() {
     if (fileMap[from] && fileMap[from].length > 0) {
       var file = fileMap[from][0];
       file.setName(to);
-      dropFolder.addFile(file);
-      folder.removeFile(file);
+      file.moveTo(dropFolder);
       moved.push(from + ' → Drop as ' + to);
     } else {
       notFound.push(from);
