@@ -88,7 +88,7 @@ Columns are read **by header name**, not position — column order can change fr
 ### Steps tab
 `concept`, `slug`, `step_no` (sort), `text`, `step_group`.
 
-### Config tab (auto-created)
+### UOM Config tab (auto-created)
 Column A: `uom` header + list of allowed UOM values. Culinary edits this list directly.
 Re-run **Admin (IT) → Set up dropdowns** after changing it.
 
@@ -113,17 +113,19 @@ Script Properties (`GITHUB_TOKEN`).
 | `onOpen` / menu | Builds the Recipe Viewer menu on Sheet load |
 | `publishToSite` | Fetch template → build recipes → diff → confirm → commit HTML |
 | `syncDropPhotos` | Drive drop → match slugs → resize → commit JPEGs to GitHub + Drive Done |
-| `importSourcePhotos` | One-time bulk import from any Drive folder; token-matched + renamed to slugs |
+| `importSourcePhotos` | Bulk import from a source Drive folder; token-matched + renamed to slugs. **Not in menu** — run manually if ever needed for a new brand. |
 | `setupValidation` | Apply dropdowns (UOM, type, status, concept) to all tabs |
 | `generateImageCheatSheet` | Write/refresh the Photo Cheat Sheet tab |
+| `refreshReadme` | Rewrite the README tab with current instructions and formatting |
 | `deleteNonJpgImages` | Remove orphaned non-.jpg files from a brand's GitHub images dir |
-| `cleanDropFolderLaPopular` | One-time LP drop folder rename/cleanup (run once; can be removed) |
+| `cleanDropFolder*` / `cleanAmalfiReviewFolder` | One-time cleanup functions (run once after initial migration) |
 
 ### Updating the script
-1. In this repo, edit `apps-script/recipe-viewer.gs`.
-2. Open the Sheet → **Extensions > Apps Script**.
-3. Select all existing code → paste the new file → **Ctrl+S** → close.
-4. Reload the Sheet — the updated menu appears.
+Edit `apps-script/recipe-viewer.gs` in this repo and push to `main` — a GitHub Action
+(`.github/workflows/clasp-push.yml`) automatically syncs the file to the bound Apps Script
+project via CLASP. Reload the Sheet to pick up the new menu.
+
+Manual fallback: open the Sheet → **Extensions > Apps Script** → select all → paste → **Ctrl+S** → reload Sheet.
 
 ---
 
@@ -260,7 +262,7 @@ Drop a new photo with the same name into **Add New Photos Here** and re-sync. It
 - **Slug uniqueness** — slugs must be unique per brand; join + matching depend on this.
 - **Images referenced by slug** — viewer looks for `<brand>/images/<slug>.jpg` directly; `image_url` column in the Sheet is not used.
 - **Only `.jpg` files are served** — the sync always commits as `.jpg`. Non-`.jpg` files in the images dir are orphaned. Use **Admin (IT) → Delete .jpeg duplicates** to clean up.
-- **UOM validation** — rejects values not on the Config tab list. Edit Config tab, then re-run **Set up dropdowns**.
+- **UOM validation** — rejects values not on the UOM Config tab list. Edit UOM Config tab, then re-run **Set up dropdowns**.
 - **Drive thumbnail endpoint** — used for HEIC conversion and resizing. If it ever breaks (rare), files will land in Review with a "couldn't read" error; fallback is a real image service.
 - **Apps Script 6-minute limit** — large photo sync runs (50+ files) may time out. If so, re-run; already-committed files just overwrite harmlessly.
 
@@ -273,12 +275,12 @@ Drop a new photo with the same name into **Add New Photos Here** and re-sync. It
 | Add/edit a recipe | Edit Sheet rows → Preview → Publish |
 | Add a photo | Drop in **Add New Photos Here** → Sync |
 | Replace a photo | Drop new file (same name) → Sync |
-| Add a UOM | Edit Config tab column A → **Admin (IT) → Set up dropdowns** |
+| Add a UOM | Edit UOM Config tab column A → **Admin (IT) → Set up dropdowns** |
 | Rotate GitHub token | **Admin (IT) → Set/update GitHub token** |
 | Clean up orphaned images | **Admin (IT) → Delete .jpeg duplicates — [Brand]** |
-| Update the script | Edit `apps-script/recipe-viewer.gs` in repo → paste into Apps Script editor → save → reload Sheet |
+| Update the script | Edit `apps-script/recipe-viewer.gs` in repo → push to `main` → CLASP auto-deploys → reload Sheet |
 | Add a new brand | Add `brand_(…)` entry in script, create Drive folders, add concept to `setupValidation`, add logo SVG + brand subdir to repo, re-run Set up dropdowns |
-| Bulk import existing photos | **Recipe Viewer → [Brand] → Stage source photos → Drop** → Sync |
+| Bulk import existing photos | Call `importSourcePhotos(brand)` directly in Apps Script editor → Sync |
 
 ---
 
@@ -293,7 +295,7 @@ Drop a new photo with the same name into **Add New Photos Here** and re-sync. It
 | Live — Amalfi Llama | `…github.io/erg-recipe-viewer/amalfillama/` |
 | Sheet | Kitchen Ops → Recipe Viewer → Recipe Viewer Source |
 | Apps Script | Bound to Sheet (`Extensions > Apps Script`) |
-| Script mirror | `apps-script/recipe-viewer.gs` (version history only — not live code) |
+| Script | `apps-script/recipe-viewer.gs` — source of truth; CLASP auto-deploys on push to `main` |
 | Token | Script Properties → `GITHUB_TOKEN` (fine-grained PAT, Contents R/W) |
 | Template | `template/index.html` |
 | Eureka drop/done/review | `183AGv_ol_pDT-06u4b9ogk2fNFnzmrsr` / `1gHU5PMr2TU6-h0rj-TBcMOYhN-WY5msN` / `1Y64622PugB9_6wzVqnC1c4kAtNdhCN5U` |
