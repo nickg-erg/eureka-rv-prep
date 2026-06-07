@@ -23,7 +23,7 @@ var ADMINS        = ['nick.giangregorio@eurekarestaurantgroup.com'];
 var NOTIFY_EMAIL  = 'nick.giangregorio@eurekarestaurantgroup.com';
 
 function brand_(o) {
-  return Object.assign({}, REPO, TABS, { notifyEmail: NOTIFY_EMAIL, thumbWidth: 1600 }, o);
+  return Object.assign({}, REPO, TABS, { notifyEmail: NOTIFY_EMAIL, thumbWidth: 1000 }, o);
 }
 
 var BRANDS = {
