@@ -21,7 +21,9 @@ jobs:
         run: npm install -g @google/clasp
 
       - name: Write CLASP credentials
-        run: echo '${{ secrets.CLASP_TOKEN }}' > ~/.clasprc.json
+        env:
+          CLASP_TOKEN: ${{ secrets.CLASP_TOKEN }}
+        run: echo "$CLASP_TOKEN" > ~/.clasprc.json
 
       - name: Write .clasp.json
         run: |
