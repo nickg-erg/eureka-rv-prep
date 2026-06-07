@@ -23,7 +23,7 @@ var ADMINS        = ['nick.giangregorio@eurekarestaurantgroup.com'];
 var NOTIFY_EMAIL  = 'nick.giangregorio@eurekarestaurantgroup.com';
 
 function brand_(o) {
-  return Object.assign({}, REPO, TABS, { notifyEmail: NOTIFY_EMAIL, thumbWidth: 1000 }, o);
+  return Object.assign({}, REPO, TABS, { notifyEmail: NOTIFY_EMAIL, thumbWidth: 1200 }, o);
 }
 
 var BRANDS = {
@@ -79,6 +79,9 @@ function onOpen() {
     menu.addSeparator().addSubMenu(ui.createMenu('Admin (IT)')
       .addItem('Refresh photo cheat sheet',          'refreshCheatSheet')
       .addItem('Clean LP drop folder (one-time)',    'cleanDropFolderLaPopular')
+      .addItem('Delete .jpeg duplicates — Eureka',   'cleanJpegDupsEureka')
+      .addItem('Delete .jpeg duplicates — La Popular','cleanJpegDupsLaPopular')
+      .addItem('Delete .jpeg duplicates — Amalfi',   'cleanJpegDupsAmalfi')
       .addSeparator()
       .addItem('Set / update GitHub token',          'setToken')
       .addItem('Set up dropdowns',           'setupDropdowns'));
@@ -101,8 +104,11 @@ function previewAmalfi()    { previewPublish(BRANDS.amalfi); }
 function syncAmalfi()       { syncDropPhotos(BRANDS.amalfi); }
 function stageAmalfi()      { importSourcePhotos(BRANDS.amalfi); }
 
-function publishAll()       { ALL.forEach(function (cfg) { publishToSite(cfg); }); }
-function refreshCheatSheet(){ generateImageCheatSheet(ALL); }
+function publishAll()          { ALL.forEach(function (cfg) { publishToSite(cfg); }); }
+function refreshCheatSheet()   { generateImageCheatSheet(ALL); }
+function cleanJpegDupsEureka() { deleteNonJpgImages(BRANDS.eureka); }
+function cleanJpegDupsLaPopular() { deleteNonJpgImages(BRANDS.lapopular); }
+function cleanJpegDupsAmalfi() { deleteNonJpgImages(BRANDS.amalfi); }
 function setToken()         { setGithubToken(); }
 function setupDropdowns()   {
   setupValidation({
@@ -760,6 +766,48 @@ function listRepoImages_(token, cfg) {
     { headers: ghHeaders_(token), muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) return new Set();
   return new Set(JSON.parse(res.getContentText()).map(function (f) { return f.name; }));
+}
+
+/* ============================================================
+   IMAGE DUPLICATE CLEANUP
+   ============================================================ */
+
+/*
+ * Deletes any non-.jpg image files from the brand's GitHub imageDir.
+ * The template hardcodes slug.jpg so .jpeg/.png duplicates are orphaned.
+ */
+function deleteNonJpgImages(cfg) {
+  var ui  = SpreadsheetApp.getUi();
+  var tok = token_();
+  if (!tok) { ui.alert('No GitHub token.'); return; }
+
+  var res = UrlFetchApp.fetch(
+    ghContentsUrl_(cfg, cfg.imageDir) + '?ref=' + encodeURIComponent(cfg.branch),
+    { headers: ghHeaders_(tok), muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) { ui.alert('Could not list ' + cfg.imageDir); return; }
+
+  var files   = JSON.parse(res.getContentText());
+  var toDelete = files.filter(function (f) { return f.type === 'file' && !/\.jpg$/i.test(f.name); });
+  if (!toDelete.length) { ui.alert(cfg.brandName + ': no non-.jpg files found — nothing to delete.'); return; }
+
+  var deleted = [], failed = [];
+  toDelete.forEach(function (f) {
+    var payload = JSON.stringify({
+      message: 'Remove duplicate ' + f.name,
+      sha: f.sha,
+      branch: cfg.branch
+    });
+    var code = UrlFetchApp.fetch(ghContentsUrl_(cfg, f.path), {
+      method: 'delete', headers: ghHeaders_(tok),
+      contentType: 'application/json', payload: payload, muteHttpExceptions: true
+    }).getResponseCode();
+    if (code === 200) deleted.push(f.name); else failed.push(f.name + ' (' + code + ')');
+  });
+
+  var msg = deleted.length + ' file(s) deleted.';
+  if (failed.length) msg += '\nFailed: ' + failed.join(', ');
+  msg += '\n\n' + deleted.map(function (n) { return '• ' + n; }).join('\n');
+  ui.alert('Cleaned ' + cfg.brandName + ' images', msg, ui.ButtonSet.OK);
 }
 
 /* ============================================================
