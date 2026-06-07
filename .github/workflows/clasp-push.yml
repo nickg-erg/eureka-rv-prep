@@ -21,9 +21,10 @@ jobs:
         run: npm install -g @google/clasp
 
       - name: Write CLASP credentials
-        env:
-          CLASP_TOKEN: ${{ secrets.CLASP_TOKEN }}
-        run: echo "$CLASP_TOKEN" > ~/.clasprc.json
+        run: |
+          cat > ~/.clasprc.json << EOF
+          {"tokens":{"default":{"client_id":"${{ secrets.CLASP_CLIENT_ID }}","client_secret":"${{ secrets.CLASP_CLIENT_SECRET }}","refresh_token":"${{ secrets.CLASP_REFRESH_TOKEN }}","type":"authorized_user"}}}
+          EOF
 
       - name: Write .clasp.json
         run: |
