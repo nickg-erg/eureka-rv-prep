@@ -72,7 +72,8 @@ function onOpen() {
       .addItem('Sync new photos now',          'sync'    + p[1])
       .addItem('Stage source photos → Drop',   'stage'   + p[1]));
   });
-  menu.addSeparator().addItem('Publish ALL brands', 'publishAll');
+  menu.addSeparator().addItem('Publish ALL brands', 'publishAll')
+    .addItem('Refresh README tab', 'refreshReadme');
 
   var admin = false;
   try { admin = ADMINS.indexOf(Session.getEffectiveUser().getEmail()) !== -1; } catch (e) {}
@@ -1063,4 +1064,91 @@ function cleanAmalfiReviewFolder() {
   if (moved.length) msg += '\nMoved to Drop:\n' + moved.map(function (r) { return '• ' + r; }).join('\n');
   msg += '\n\nRun Sync again to pick up the moved file.';
   ui.alert('Amalfi review folder cleaned', msg, ui.ButtonSet.OK);
+}
+
+/* ============================================================
+   README TAB
+   ============================================================ */
+
+function refreshReadme() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('README') || ss.insertSheet('README', 0);
+  sh.clear();
+  sh.clearFormats();
+
+  var lines = [
+    ['ERG Recipe Viewer — Sheet Guide'],
+    [''],
+    ['This sheet is the source for the kitchen recipe viewer:'],
+    ['https://nickg-erg.github.io/erg-recipe-viewer/'],
+    ['You edit recipes here, then click Publish. Changes go live in about a minute.'],
+    [''],
+    ['THE TABS'],
+    ['  Recipes         — one row per recipe (the main list).'],
+    ['  Ingredients     — the ingredients for each recipe (many rows per recipe).'],
+    ['  Steps           — the method for each recipe (many rows per recipe).'],
+    ['  Photo Cheat Sheet — the exact file name to use for each dish photo (read-only helper).'],
+    ['  Image Sync Log  — a record of photo uploads (read-only).'],
+    [''],
+    ['The three data tabs are linked by "slug" — a short lowercase id like poke-bowl.'],
+    ['The same slug must match across Recipes, Ingredients, and Steps for a recipe to come together.'],
+    [''],
+    ['ADD OR EDIT A RECIPE'],
+    ['  1. In Recipes, add a row. Give it a unique slug (lowercase, hyphens, e.g. ahi-poke).'],
+    ['  2. Fill in name, category, yields, prep time, shelf life, plating note, etc.'],
+    ['  3. type = plate for menu/plated dishes, or prep for prep/component recipes.'],
+    ['  4. status = draft while you\'re working; set it to live when it\'s ready to show.'],
+    ['     Only live recipes publish — drafts stay hidden.'],
+    ['  5. In Ingredients and Steps, add rows using the SAME slug.'],
+    ['     Use the order / step_no columns to control the sequence.'],
+    ['  6. uom (unit) must be picked from the dropdown. If a unit is missing, contact IT to add it.'],
+    ['  7. When ready: Recipe Viewer menu ▸ Preview what will publish (to check),'],
+    ['     then Recipe Viewer ▸ Publish to site.'],
+    [''],
+    ['ADD A DISH PHOTO'],
+    ['  1. Open the Photo Cheat Sheet tab and find the dish — it shows the EXACT file name to use.'],
+    ['  2. Name your photo that exact name, e.g. ahi-poke.jpg. Any common photo format is fine;'],
+    ['     the system converts and resizes it automatically.'],
+    ['  3. Put the photo in the Drive folder "Add New Photos Here"'],
+    ['     (DISH PICS ▸ Recipe Viewer Photos ▸ Add New Photos Here).'],
+    ['  4. Back here: Recipe Viewer ▸ Sync new photos now.'],
+    ['  5. Success → the photo moves itself to "Successfully Uploaded Photos" and appears on'],
+    ['     the site after Publish. To replace a photo, drop a new one with the same name and re-sync.'],
+    [''],
+    ['  Note: any recipe type (plate or prep) can have a photo.'],
+    [''],
+    ['IF A PHOTO BOUNCES'],
+    ['  You\'ll get an email and the file lands in "Upload Failed - Needs Review." Usual reasons:'],
+    ['  - The name doesn\'t match a recipe — rename it to match the Photo Cheat Sheet'],
+    ['    (the email suggests the closest match), move it back to "Add New Photos Here," and re-sync.'],
+    [''],
+    ['THE RECIPE VIEWER MENU'],
+    ['  Publish to site          — pushes recipes live.'],
+    ['  Preview what will publish — shows what will change, without publishing.'],
+    ['  Sync new photos now       — uploads photos from the drop folder.'],
+    ['  Refresh README tab        — rewrites this tab with the latest instructions.'],
+    ['  Admin (IT)                — token, dropdowns, cheat sheet, cleanup tools (IT only).'],
+    [''],
+    ['NEED HELP / ADMIN STUFF'],
+    ['  Adding a unit, fixing dropdowns, the GitHub token, or anything in Admin (IT) →'],
+    ['  contact Nick / IT.'],
+    [''],
+    ['Confidential & Proprietary — Eureka Restaurant Group. Internal use only.']
+  ];
+
+  sh.getRange(1, 1, lines.length, 1).setValues(lines);
+
+  // Formatting
+  sh.getRange(1, 1).setFontSize(14).setFontWeight('bold');
+  sh.setColumnWidth(1, 720);
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1).setBackground('#111111').setFontColor('#ffffff');
+
+  // Bold section headers
+  var headers = [8, 18, 32, 47, 53, 61];
+  headers.forEach(function (r) {
+    sh.getRange(r, 1).setFontWeight('bold');
+  });
+
+  ss.toast('README tab updated.', 'Done');
 }
