@@ -1076,79 +1076,126 @@ function refreshReadme() {
   sh.clear();
   sh.clearFormats();
 
-  var lines = [
-    ['ERG Recipe Viewer — Sheet Guide'],
-    [''],
-    ['This sheet is the source for the kitchen recipe viewer:'],
-    ['https://nickg-erg.github.io/erg-recipe-viewer/'],
-    ['You edit recipes here, then click Publish. Changes go live in about a minute.'],
-    [''],
-    ['THE TABS'],
-    ['  Recipes         — one row per recipe (the main list).'],
-    ['  Ingredients     — the ingredients for each recipe (many rows per recipe).'],
-    ['  Steps           — the method for each recipe (many rows per recipe).'],
-    ['  Photo Cheat Sheet — the exact file name to use for each dish photo (read-only helper).'],
-    ['  Image Sync Log  — a record of photo uploads (read-only).'],
-    [''],
-    ['The three data tabs are linked by "slug" — a short lowercase id like poke-bowl.'],
-    ['The same slug must match across Recipes, Ingredients, and Steps for a recipe to come together.'],
-    [''],
-    ['ADD OR EDIT A RECIPE'],
-    ['  1. In Recipes, add a row. Give it a unique slug (lowercase, hyphens, e.g. ahi-poke).'],
-    ['  2. Fill in name, category, yields, prep time, shelf life, plating note, etc.'],
-    ['  3. type = plate for menu/plated dishes, or prep for prep/component recipes.'],
-    ['  4. status = draft while you\'re working; set it to live when it\'s ready to show.'],
-    ['     Only live recipes publish — drafts stay hidden.'],
-    ['  5. In Ingredients and Steps, add rows using the SAME slug.'],
-    ['     Use the order / step_no columns to control the sequence.'],
-    ['  6. uom (unit) must be picked from the dropdown. If a unit is missing, contact IT to add it.'],
-    ['  7. When ready: Recipe Viewer menu ▸ Preview what will publish (to check),'],
-    ['     then Recipe Viewer ▸ Publish to site.'],
-    [''],
-    ['ADD A DISH PHOTO'],
-    ['  1. Open the Photo Cheat Sheet tab and find the dish — it shows the EXACT file name to use.'],
-    ['  2. Name your photo that exact name, e.g. ahi-poke.jpg. Any common photo format is fine;'],
-    ['     the system converts and resizes it automatically.'],
-    ['  3. Put the photo in the Drive folder "Add New Photos Here"'],
-    ['     (DISH PICS ▸ Recipe Viewer Photos ▸ Add New Photos Here).'],
-    ['  4. Back here: Recipe Viewer ▸ Sync new photos now.'],
-    ['  5. Success → the photo moves itself to "Successfully Uploaded Photos" and appears on'],
-    ['     the site after Publish. To replace a photo, drop a new one with the same name and re-sync.'],
-    [''],
-    ['  Note: any recipe type (plate or prep) can have a photo.'],
-    [''],
-    ['IF A PHOTO BOUNCES'],
-    ['  You\'ll get an email and the file lands in "Upload Failed - Needs Review." Usual reasons:'],
-    ['  - The name doesn\'t match a recipe — rename it to match the Photo Cheat Sheet'],
-    ['    (the email suggests the closest match), move it back to "Add New Photos Here," and re-sync.'],
-    [''],
-    ['THE RECIPE VIEWER MENU'],
-    ['  Publish to site          — pushes recipes live.'],
-    ['  Preview what will publish — shows what will change, without publishing.'],
-    ['  Sync new photos now       — uploads photos from the drop folder.'],
-    ['  Refresh README tab        — rewrites this tab with the latest instructions.'],
-    ['  Admin (IT)                — token, dropdowns, cheat sheet, cleanup tools (IT only).'],
-    [''],
-    ['NEED HELP / ADMIN STUFF'],
-    ['  Adding a unit, fixing dropdowns, the GitHub token, or anything in Admin (IT) →'],
-    ['  contact Nick / IT.'],
-    [''],
-    ['Confidential & Proprietary — Eureka Restaurant Group. Internal use only.']
+  // col A = label/section, col B = detail
+  // Row format: [colA, colB]
+  var rows = [
+    // Row 1 — title header (frozen)
+    ['ERG Recipe Viewer — Sheet Guide', ''],
+
+    // About
+    ['', ''],
+    ['This sheet is the source for the kitchen recipe viewer. You edit recipes here, then click Publish.', ''],
+    ['Changes go live in about a minute.', ''],
+    ['Site:', 'https://nickg-erg.github.io/erg-recipe-viewer/'],
+
+    // THE TABS
+    ['', ''],
+    ['THE TABS', ''],
+    ['Recipes', 'One row per recipe — the main list.'],
+    ['Ingredients', 'Ingredients for each recipe (many rows per recipe).'],
+    ['Steps', 'Method for each recipe (many rows per recipe).'],
+    ['Photo Cheat Sheet', 'Exact file name to use for each dish photo (read-only helper).'],
+    ['Image Sync Log', 'Record of photo uploads (read-only).'],
+    ['', ''],
+    ['', 'The three data tabs are linked by "slug" — a short lowercase id like poke-bowl.'],
+    ['', 'The same slug must match across Recipes, Ingredients, and Steps for a recipe to come together.'],
+
+    // ADD OR EDIT A RECIPE
+    ['', ''],
+    ['ADD OR EDIT A RECIPE', ''],
+    ['1.', 'In Recipes, add a row. Give it a unique slug (lowercase, hyphens, e.g. ahi-poke).'],
+    ['2.', 'Fill in name, category, yields, prep time, shelf life, plating note, etc.'],
+    ['3.', 'type = plate for menu/plated dishes, or prep for prep/component recipes.'],
+    ['4.', 'status = draft while working; set to live when ready. Only live recipes publish.'],
+    ['5.', 'In Ingredients and Steps, add rows using the SAME slug. Use order / step_no to control sequence.'],
+    ['6.', 'uom (unit) must be picked from the dropdown. If a unit is missing, contact IT to add it.'],
+    ['7.', 'Recipe Viewer menu ▸ Preview what will publish (to check), then ▸ Publish to site.'],
+
+    // ADD A DISH PHOTO
+    ['', ''],
+    ['ADD A DISH PHOTO', ''],
+    ['1.', 'Open the Photo Cheat Sheet tab — it shows the EXACT file name to use.'],
+    ['2.', 'Name your photo that exact name, e.g. ahi-poke.jpg. Any common photo format is fine; the system converts and resizes it automatically.'],
+    ['3.', 'Put the photo in the Drive folder "Add New Photos Here" (DISH PICS ▸ Recipe Viewer Photos ▸ Add New Photos Here).'],
+    ['4.', 'Back here: Recipe Viewer ▸ Sync new photos now.'],
+    ['5.', 'Success → the photo moves to "Successfully Uploaded Photos" and appears on the site after Publish.'],
+    ['Note:', 'Any recipe type (plate or prep) can have a photo. To replace a photo, drop a new one with the same name and re-sync.'],
+
+    // IF A PHOTO BOUNCES
+    ['', ''],
+    ['IF A PHOTO BOUNCES', ''],
+    ['', 'You\'ll get an email and the file lands in "Upload Failed - Needs Review."'],
+    ['', 'Rename the file to match the Photo Cheat Sheet (the email suggests the closest match),'],
+    ['', 'move it back to "Add New Photos Here," and re-sync.'],
+
+    // MENU REFERENCE
+    ['', ''],
+    ['THE RECIPE VIEWER MENU', ''],
+    ['Publish to site', 'Pushes recipes live.'],
+    ['Preview what will publish', 'Shows what will change, without publishing.'],
+    ['Sync new photos now', 'Uploads photos from the drop folder.'],
+    ['Refresh README tab', 'Rewrites this tab with the latest instructions.'],
+    ['Admin (IT)', 'Token, dropdowns, cheat sheet, cleanup tools (IT only).'],
+
+    // HELP
+    ['', ''],
+    ['NEED HELP / ADMIN STUFF', ''],
+    ['', 'Adding a unit, fixing dropdowns, the GitHub token, or anything in Admin (IT) → contact Nick / IT.'],
+
+    // Footer
+    ['', ''],
+    ['Confidential & Proprietary — Eureka Restaurant Group. Internal use only.', '']
   ];
 
-  sh.getRange(1, 1, lines.length, 1).setValues(lines);
+  var numRows = rows.length;
+  sh.getRange(1, 1, numRows, 2).setValues(rows);
 
-  // Formatting
-  sh.getRange(1, 1).setFontSize(14).setFontWeight('bold');
-  sh.setColumnWidth(1, 720);
+  // Global font + size
+  var allRange = sh.getRange(1, 1, numRows, 2);
+  allRange.setFontFamily('Arial').setFontSize(10).setFontWeight('normal')
+    .setFontColor('#000000').setBackground('#ffffff').setVerticalAlignment('middle');
+
+  // Column widths
+  sh.setColumnWidth(1, 220);
+  sh.setColumnWidth(2, 560);
+
+  // Row height — give all rows a little breathing room
+  for (var r = 1; r <= numRows; r++) {
+    sh.setRowHeight(r, 22);
+  }
+
+  // Title row (row 1): dark background, white bold text, larger font
+  sh.getRange(1, 1, 1, 2)
+    .setBackground('#111111').setFontColor('#ffffff')
+    .setFontWeight('bold').setFontSize(13);
   sh.setFrozenRows(1);
-  sh.getRange(1, 1).setBackground('#111111').setFontColor('#ffffff');
 
-  // Bold section headers
-  var headers = [8, 18, 32, 47, 53, 61];
-  headers.forEach(function (r) {
-    sh.getRange(r, 1).setFontWeight('bold');
+  // Section header rows — bold, light grey background
+  var SECTION_BG = '#e8e8e8';
+  var sectionRows = [];
+  rows.forEach(function (row, i) {
+    var sectionHeaders = [
+      'THE TABS', 'ADD OR EDIT A RECIPE', 'ADD A DISH PHOTO',
+      'IF A PHOTO BOUNCES', 'THE RECIPE VIEWER MENU', 'NEED HELP / ADMIN STUFF'
+    ];
+    if (sectionHeaders.indexOf(row[0]) !== -1) sectionRows.push(i + 1);
   });
+  sectionRows.forEach(function (r) {
+    sh.getRange(r, 1, 1, 2).setBackground(SECTION_BG).setFontWeight('bold').setFontSize(10);
+  });
+
+  // Col A labels (step numbers, tab names, menu items) — bold
+  rows.forEach(function (row, i) {
+    var a = row[0];
+    if (a && a !== 'ERG Recipe Viewer — Sheet Guide' &&
+        sectionRows.indexOf(i + 1) === -1 &&
+        a !== 'Confidential & Proprietary — Eureka Restaurant Group. Internal use only.') {
+      sh.getRange(i + 1, 1).setFontWeight('bold');
+    }
+  });
+
+  // Footer row — italic, grey text
+  sh.getRange(numRows, 1, 1, 2).setFontStyle('italic').setFontColor('#666666');
 
   ss.toast('README tab updated.', 'Done');
 }
