@@ -483,7 +483,9 @@ function syncDropPhotos(cfg) {
       continue;
     }
 
-    var blob = getThumbnailJpeg_(f.getId(), cfg.thumbWidth || 1600);
+    var ext  = (name.match(/(\.[^.]+)$/) || ['.jpg'])[0].toLowerCase();
+    var isHeic = ext === '.heic' || ext === '.heif';
+    var blob = isHeic ? getThumbnailJpeg_(f.getId(), 2400) : f.getBlob();
     if (!blob) {
       f.moveTo(review);
       bounced.push({ name: name, url: f.getUrl(),
@@ -492,9 +494,9 @@ function syncDropPhotos(cfg) {
       continue;
     }
 
-    var code = commitImage_(tok, cfg, rec.slug, blob);
+    var commitExt = isHeic ? '.jpg' : ext;
+    var code = commitImage_(tok, cfg, rec.slug, blob, commitExt);
     if (code === 200 || code === 201) {
-      var ext = (name.match(/\.[^.]+$/) || ['.jpg'])[0];
       f.setName(rec.slug + ext);
       f.moveTo(done);
       committed.push({ name: name, slug: rec.slug });
@@ -583,8 +585,8 @@ function getThumbnailJpeg_(id, width) {
   return res.getBlob();
 }
 
-function commitImage_(token, cfg, slug, blob) {
-  var path = cfg.imageDir + '/' + slug + '.jpg';
+function commitImage_(token, cfg, slug, blob, ext) {
+  var path = cfg.imageDir + '/' + slug + (ext || '.jpg');
   var sha  = null;
   var get  = UrlFetchApp.fetch(
     ghContentsUrl_(cfg, path) + '?ref=' + encodeURIComponent(cfg.branch),
