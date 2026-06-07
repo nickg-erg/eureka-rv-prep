@@ -7,11 +7,11 @@
   <meta name="description" content="Back-of-house recipe viewer for Eureka Restaurant Group" />
   <style>
     /* =========================================================================
-       BRANDING — retune here. Drop the real Eureka orange + logo and you're done.
+       BRANDING — injected per brand at publish time. Do not hardcode brand values here.
        ========================================================================= */
     :root{
-      --eureka-orange:#FF671D;   /* Eureka brand orange */
-      --eureka-blue:#0369A1;     /* complement of eureka orange — not an official brand color */
+      --brand-primary:#FF671D;   /* primary brand color */
+      --brand-accent:#0369A1;     /* accent / secondary brand color */
       --ink:#161616;
       --ink-2:#202020;
       --ink-3:#3a3a3a;
@@ -71,7 +71,7 @@
       -webkit-tap-highlight-color:transparent;
     }
     .reload-btn:hover{border-color:rgba(255,255,255,.55);color:#fff;}
-    .reload-btn:active{background:var(--eureka-orange);border-color:var(--eureka-orange);color:#fff;}
+    .reload-btn:active{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
 
     /* A–Z jump strip (buttons; JS scrolls the list, no hash change) */
     .letterbar{
@@ -87,7 +87,7 @@
       transition:background .12s ease;
     }
     .letterbar button:hover{background:#333;}
-    .letterbar button:active{background:var(--eureka-orange);}
+    .letterbar button:active{background:var(--brand-primary);}
     .letterbar button.empty{color:#5a5a5a;background:var(--ink);cursor:default;}
 
     /* scrolling recipe-link list */
@@ -97,7 +97,7 @@
     }
     .navletter{
       position:sticky;top:0;z-index:1;
-      background:var(--eureka-blue);color:#fff;
+      background:var(--brand-accent);color:#fff;
       font-family:var(--mono);font-weight:700;font-size:.82rem;
       letter-spacing:.12em;text-transform:uppercase;
       padding:.22rem .9rem;scroll-margin-top:0;
@@ -110,8 +110,8 @@
       transition:background .1s ease,color .1s ease;
     }
     .navlist a:hover{background:var(--ink-2);}
-    .navlist a:active{background:var(--eureka-orange);color:#fff;}
-    .navlist a.current,.navlist a.current:hover{background:var(--eureka-blue);color:#fff;}
+    .navlist a:active{background:var(--brand-primary);color:#fff;}
+    .navlist a.current,.navlist a.current:hover{background:var(--brand-accent);color:#fff;}
     .nav-sub{display:block;font-family:var(--mono);font-size:.72rem;text-transform:uppercase;
       letter-spacing:.06em;line-height:1.3;margin-top:.12rem;opacity:.55;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -127,7 +127,7 @@
       padding:.5rem 0;text-transform:uppercase;letter-spacing:.05em;
       transition:background .12s ease,color .12s ease;}
     .typebar button:hover{background:#333;color:#fff;}
-    .typebar button.current{background:var(--eureka-orange);color:#fff;}
+    .typebar button.current{background:var(--brand-primary);color:#fff;}
 
     /* category filter chips */
     .catbar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem .6rem;
@@ -137,7 +137,7 @@
       font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;
       padding:.28rem .6rem;line-height:1;transition:background .12s ease,color .12s ease,border-color .12s ease;}
     .catchip:hover{background:var(--ink-2);color:#fff;}
-    .catchip.current{background:var(--eureka-orange);border-color:var(--eureka-orange);color:#fff;}
+    .catchip.current{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
 
     /* ============================== STAGE =============================== */
     .stage{position:relative;height:100dvh;overflow:hidden;}
@@ -163,7 +163,7 @@
     .totop{
       display:flex;align-items:center;gap:.35rem;
       position:fixed;right:.85rem;bottom:.85rem;z-index:50;
-      background:var(--eureka-orange);color:#fff;text-decoration:none;
+      background:var(--brand-primary);color:#fff;text-decoration:none;
       font-family:var(--display);font-weight:700;font-size:1rem;
       padding:.7rem 1.05rem;border-radius:999px;
       box-shadow:0 3px 12px rgba(0,0,0,.32);
@@ -182,19 +182,19 @@
       color:var(--text-soft);text-decoration:none;border:1px solid #c9c9c9;
       padding:.4rem .7rem;border-radius:2px;white-space:nowrap;
     }
-    .back:active{background:var(--eureka-orange);color:#fff;border-color:var(--eureka-orange);}
+    .back:active{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 
     .meta{display:grid;grid-template-columns:max-content 1fr;gap:.5rem 1.6rem;
       align-items:baseline;margin:.2rem 0 1.1rem;}
     .meta .lbl{font-family:var(--display);font-weight:800;font-size:1.12rem;color:var(--ink);
-      border-left:3px solid var(--eureka-blue);padding-left:.55rem;line-height:1.15;}
+      border-left:3px solid var(--brand-accent);padding-left:.55rem;line-height:1.15;}
     .meta .val{font-family:var(--display);color:var(--text);font-size:1.1rem;line-height:1.15;}
     .meta .val .tag{font-family:var(--mono);color:var(--text-soft);font-size:.92rem;margin-right:.15rem;}
     .meta .val .ysep{display:inline-block;margin:0 .55rem;color:#c9c4be;font-weight:400;}
     .catpill{align-self:auto;flex:0 0 auto;font-family:var(--mono);font-size:.72rem;
       text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--ink-2);
       padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
-    .ilink{color:var(--eureka-blue);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;}
+    .ilink{color:var(--brand-accent);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;}
     .confid{margin-top:2.2rem;padding-top:.75rem;border-top:1px solid #d9d6d2;
       font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;color:#9a948d;text-transform:uppercase;}
 
@@ -205,7 +205,7 @@
 
     .rpills{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;align-self:center;}
     .platepill{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;
-      color:#fff;background:var(--eureka-orange);padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
+      color:#fff;background:var(--brand-primary);padding:.25rem .6rem;border-radius:999px;white-space:nowrap;}
     .dish-hero{width:100%;aspect-ratio:4/3;max-height:42vh;overflow:hidden;
       border-radius:4px;margin:0 0 1.1rem;}
     .dish-hero img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -270,7 +270,7 @@
       .proc-block{display:block;margin-top:1rem;background:var(--card);
         border:1px solid #d9d6d2;padding:.75rem .85rem;}   /* ...and appears here */
       .proc-block h3{margin:0 0 .45rem;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;
-        border-left:3px solid var(--eureka-orange);padding-left:.5rem;}
+        border-left:3px solid var(--brand-primary);padding-left:.5rem;}
       .proc-block ol{margin:0;padding-left:1.4rem;}
       .proc-block li{line-height:1.42;}
       .proc-block li+li{margin-top:.6rem;}
@@ -293,7 +293,7 @@
      Google Sheet on publish. Nothing below this block is touched by editors.
      Schema mirrors the agreed three Sheet tabs, joined by slug.
      ========================================================================== */
-  /* RECIPES:START — Make regenerates everything between these two markers from the Google Sheet. */
+  /* RECIPES:START — the publisher replaces everything between these two markers with this brand's recipes. */
   const RECIPES = [
   {
     "slug": "al-pastor-fish-tacos",
@@ -11312,7 +11312,8 @@
         <path d="M498.846 2.1384H534.127V102.496L579.422 50.6021H624.082L574.848 101.85L625.986 187.542H582.276L549.005 128.765L534.127 144.253V187.542H498.846V2.1384Z" fill="#fff"/>
         <path d="M706.199 120.651C703.898 122.084 701.581 123.24 699.239 124.118C696.894 125.002 693.683 125.827 689.595 126.581L681.415 128.095C673.756 129.444 668.253 131.082 664.915 133.014C659.251 136.295 656.43 141.389 656.43 148.289C656.43 154.433 658.16 158.869 661.612 161.606C665.066 164.34 669.267 165.705 674.215 165.705C682.062 165.705 689.292 163.435 695.899 158.892C702.51 154.347 705.944 146.062 706.199 134.03V120.651ZM684.241 103.864C690.928 103.026 695.704 101.971 698.587 100.707C703.751 98.52 706.327 95.1149 706.327 90.4852C706.327 84.8445 704.345 80.9593 700.386 78.8087C696.426 76.6673 690.616 75.592 682.952 75.592C674.352 75.592 668.266 77.6943 664.688 81.9059C662.128 85.0168 660.433 89.2261 659.582 94.5267H624.923C625.687 82.4941 629.061 72.6074 635.053 64.8644C644.584 52.7468 660.951 46.6903 684.156 46.6903C699.257 46.6903 712.67 49.6749 724.396 55.6487C736.123 61.6271 741.988 72.8992 741.988 89.4742V152.585C741.988 156.958 742.071 162.256 742.24 168.478C742.49 173.202 743.206 176.393 744.381 178.073C745.557 179.759 747.321 181.145 749.673 182.238V187.541H710.612C709.516 184.768 708.763 182.162 708.343 179.716C707.919 177.278 707.586 174.5 707.336 171.389C702.352 176.768 696.605 181.356 690.095 185.142C682.324 189.602 673.536 191.835 663.738 191.835C651.232 191.835 640.898 188.276 632.743 181.168C624.593 174.059 620.519 163.984 620.519 150.938C620.519 134.03 627.079 121.786 640.196 114.213C647.38 110.091 657.967 107.148 671.928 105.381L684.241 103.864Z" fill="#fff"/>
         <path d="M797.245 187.543H761.864V152.105H797.245V187.543ZM759.478 2.27957H799.871L794.378 130.797H764.972L759.478 2.27957Z" fill="#FF671D"/>
-      </svg><button class="reload-btn" onclick="safeReload()" title="Reload" aria-label="Reload page">↻</button></div>` + typebar + chips + bar + nlist;
+      </svg>
+<button class="reload-btn" onclick="safeReload()" title="Reload" aria-label="Reload page">↻</button></div>` + typebar + chips + bar + nlist;
 
     // ---- recipe pages into the stage (after the placeholder) ----
     const stage = document.getElementById("stage");
