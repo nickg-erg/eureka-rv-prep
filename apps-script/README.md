@@ -1,0 +1,1 @@
+Mirror of the Apps Script source for version history. Live code runs in the Apps Script editor (library project + the script bound to the recipe Sheet), not from this repo. Edits here do not take effect until pasted into Apps Script.
