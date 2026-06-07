@@ -636,10 +636,10 @@ function importSourcePhotos(cfg) {
   var allSlugs = Object.keys(idx.byKey).filter(function (k) { return idx.byKey[k].slug === k; });
 
   var matched = [], unmatched = [], skipped = [];
-  var files = srcFolder.getFiles();
+  var allFiles = collectFilesRecursive_(srcFolder);
 
-  while (files.hasNext()) {
-    var f    = files.next();
+  for (var fi = 0; fi < allFiles.length; fi++) {
+    var f    = allFiles[fi];
     var name = f.getName();
     var mime = f.getMimeType();
 
@@ -655,7 +655,7 @@ function importSourcePhotos(cfg) {
 
     if (slug) matched.push({ orig: name, dest: dest });
     else      unmatched.push({ orig: name, dest: dest });
-  }
+  }  // end for
 
   var msg = matched.length + ' photos staged to the drop folder with matched slug names.\n';
   if (unmatched.length) msg += unmatched.length + ' photos staged but no slug match found (they\'ll land in Review during sync).\n';
@@ -671,6 +671,18 @@ function importSourcePhotos(cfg) {
     msg += '\n\nNo slug match:\n' + unmatched.map(function (r) { return '• ' + r.orig; }).join('\n');
   }
   ui.alert('Stage source photos — ' + cfg.brandName, msg, ui.ButtonSet.OK);
+}
+
+function collectFilesRecursive_(folder) {
+  var result = [];
+  var files = folder.getFiles();
+  while (files.hasNext()) result.push(files.next());
+  var subs = folder.getFolders();
+  while (subs.hasNext()) {
+    var sub = collectFilesRecursive_(subs.next());
+    for (var i = 0; i < sub.length; i++) result.push(sub[i]);
+  }
+  return result;
 }
 
 function extractFolderId_(input) {
