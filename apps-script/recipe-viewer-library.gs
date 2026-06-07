@@ -321,7 +321,8 @@ function setupValidation(opts) {
   if (!rec || !ing) throw new Error('Missing Recipes or Ingredients tab.');
 
   applyListByHeader_(ing, 'uom', ['oz-wt','oz-fl','lbs','ltr','tsp','tbsp','pint','qt',
-                                  'gal','grs','kg','cup','ea','bunch','pinch','slices']);
+                                  'gal','grs','kg','cup','ea','bunch','pinch','slices',
+                                  'sprig','a/n','serving']);
   applyListByHeader_(rec, 'type',   ['prep','plate']);
   applyListByHeader_(rec, 'status', ['live','draft']);
 
