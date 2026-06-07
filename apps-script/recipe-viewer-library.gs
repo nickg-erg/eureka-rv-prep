@@ -312,34 +312,58 @@ function clean_(o) {
 }
 
 /* ===================== validation / dropdowns ===================== */
+
+var CONFIG_TAB_     = 'Config';
+var DEFAULT_UOMS_   = ['oz-wt','oz-fl','lbs','ltr','tsp','tbsp','pint','qt',
+                       'gal','grs','kg','cup','ea','bunch','pinch','slices',
+                       'sprig','a/n','serving'];
+
+/**
+ * Returns the UOM list from the Config tab (column A, skipping header).
+ * Creates the Config tab with defaults if it doesn't exist yet.
+ */
+function getOrCreateUomList_(ss) {
+  var tab = ss.getSheetByName(CONFIG_TAB_);
+  if (!tab) {
+    tab = ss.insertSheet(CONFIG_TAB_);
+    tab.getRange(1, 1).setValue('uom');
+    tab.getRange(2, 1, DEFAULT_UOMS_.length, 1).setValues(DEFAULT_UOMS_.map(function(u){ return [u]; }));
+    tab.getRange(1, 1).setFontWeight('bold');
+    SpreadsheetApp.flush();
+  }
+  var vals = tab.getRange(2, 1, tab.getLastRow() - 1, 1).getValues();
+  return vals.map(function(r){ return String(r[0]).trim(); }).filter(function(v){ return v; });
+}
+
 /* opts: { recipesTab, ingredientsTab, stepsTab, concepts: [..] } */
 function setupValidation(opts) {
-  const ss  = SpreadsheetApp.getActiveSpreadsheet();
-  const rec = ss.getSheetByName(opts.recipesTab);
-  const ing = ss.getSheetByName(opts.ingredientsTab);
-  const stp = ss.getSheetByName(opts.stepsTab);
+  var ss  = SpreadsheetApp.getActiveSpreadsheet();
+  var rec = ss.getSheetByName(opts.recipesTab);
+  var ing = ss.getSheetByName(opts.ingredientsTab);
+  var stp = ss.getSheetByName(opts.stepsTab);
   if (!rec || !ing) throw new Error('Missing Recipes or Ingredients tab.');
 
-  applyListByHeader_(ing, 'uom', ['oz-wt','oz-fl','lbs','ltr','tsp','tbsp','pint','qt',
-                                  'gal','grs','kg','cup','ea','bunch','pinch','slices',
-                                  'sprig','a/n','serving']);
+  var uoms = getOrCreateUomList_(ss);
+  applyListByHeader_(ing, 'uom',    uoms);
   applyListByHeader_(rec, 'type',   ['prep','plate']);
   applyListByHeader_(rec, 'status', ['live','draft']);
 
-  // brand column (concept) — the partition key for the shared sheet
   applyListByHeader_(rec, 'concept', opts.concepts);
   applyListByHeader_(ing, 'concept', opts.concepts);
   if (stp) applyListByHeader_(stp, 'concept', opts.concepts);
 
   SpreadsheetApp.getUi().alert(
-    'Dropdowns set: uom (Ingredients), type/status (Recipes), and brand/concept on all tabs ' +
-    '(skipped where a "concept" column is missing — add it first if so).');
+    '✅  Dropdowns updated\n\n' +
+    '• UOM list: ' + uoms.length + ' units loaded from the Config tab\n' +
+    '• Recipes: type and status dropdowns set\n' +
+    '• All tabs: concept/brand dropdown set\n\n' +
+    'To add a new unit of measure, edit the Config tab (column A) and re-run this menu item.');
 }
 
 function headerCol_(sheet, header) {
-  const lastCol = sheet.getLastColumn();
+  var lastCol = sheet.getLastColumn();
   if (lastCol < 1) return 0;
-  const hdr = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var hdr = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   for (var i = 0; i < hdr.length; i++) {
     if (String(hdr[i]).trim().toLowerCase() === header.toLowerCase()) return i + 1;
   }
@@ -347,10 +371,10 @@ function headerCol_(sheet, header) {
 }
 
 function applyListByHeader_(sheet, header, values) {
-  const col = headerCol_(sheet, header);
+  var col = headerCol_(sheet, header);
   if (!col) { Logger.log('Header "' + header + '" not found on ' + sheet.getName() + ' — skipped.'); return; }
-  const lastRow = sheet.getMaxRows();
-  const rule = SpreadsheetApp.newDataValidation()
+  var lastRow = sheet.getMaxRows();
+  var rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(values, true).setAllowInvalid(false).build();
   sheet.getRange(2, col, lastRow - 1, 1).setDataValidation(rule);
 }
