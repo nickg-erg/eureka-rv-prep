@@ -77,6 +77,8 @@ function onOpen() {
   try { admin = ADMINS.indexOf(Session.getEffectiveUser().getEmail()) !== -1; } catch (e) {}
   if (admin) {
     menu.addSeparator().addSubMenu(ui.createMenu('Admin (IT)')
+      .addItem('Force republish ALL brands', 'forcePublishAll')
+      .addSeparator()
       .addItem('Refresh photo cheat sheet', 'refreshCheatSheet')
       .addItem('Refresh README tab',        'refreshReadme')
       .addSeparator()
@@ -181,7 +183,12 @@ function previewPublish(cfg) {
   ui.alert('Preview — ' + cfg.brandName, diffSummary_(diffRecipes_(recipes, live)), ui.ButtonSet.OK);
 }
 
-function publishToSite(cfg) {
+function forcePublishEureka()    { publishToSite(BRANDS.eureka,    true); }
+function forcePublishLaPopular() { publishToSite(BRANDS.lapopular, true); }
+function forcePublishAmalfi()    { publishToSite(BRANDS.amalfi,    true); }
+function forcePublishAll()       { ALL.forEach(function(cfg){ publishToSite(cfg, true); }); }
+
+function publishToSite(cfg, force) {
   var ui  = ui_();
   var tok = token_();
   if (!tok) { ui.alert('No GitHub token — run Admin > Set / update GitHub token first.'); return; }
@@ -199,14 +206,14 @@ function publishToSite(cfg) {
   var live     = cur.text ? extractLiveRecipes_(cur.text) : null;
   var d        = diffRecipes_(recipes, live);
 
-  if (d.hasLive && !d.added.length && !d.changed.length && !d.removed.length) {
+  if (!force && d.hasLive && !d.added.length && !d.changed.length && !d.removed.length) {
     ui.alert(cfg.brandName + ': nothing to publish — site already matches the Sheet (' + d.total + ' live).');
     return;
   }
-  if (ui.alert('Publish ' + cfg.brandName + '?', diffSummary_(d), ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  if (!force && ui.alert('Publish ' + cfg.brandName + '?', diffSummary_(d), ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
 
   var rendered = renderTemplate_(template, cfg, logoSvg, recipes);
-  if (cur.text && rendered === cur.text) { ui.alert(cfg.brandName + ': no changes detected.'); return; }
+  if (!force && cur.text && rendered === cur.text) { ui.alert(cfg.brandName + ': no changes detected.'); return; }
 
   var code = putRepoFile_(tok, cfg, cfg.outputPath, rendered, cur.sha,
     'Publish ' + cfg.brandName + ': ' + recipes.length + ' recipes (' + new Date().toISOString() + ')');
