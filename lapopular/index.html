@@ -127,7 +127,7 @@
       padding:.5rem 0;text-transform:uppercase;letter-spacing:.05em;
       transition:background .12s ease,color .12s ease;}
     .typebar button:hover{background:#333;color:#fff;}
-    .typebar button.current{background:var(--brand-primary);color:#fff;}
+    .typebar button.current{background:var(--brand-accent);color:#fff;}
 
     /* category filter chips */
     .catbar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem .6rem;
@@ -137,7 +137,7 @@
       font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;
       padding:.28rem .6rem;line-height:1;transition:background .12s ease,color .12s ease,border-color .12s ease;}
     .catchip:hover{background:var(--ink-2);color:#fff;}
-    .catchip.current{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
+    .catchip.current{background:var(--brand-accent);border-color:var(--brand-accent);color:#fff;}
 
     /* ============================== STAGE =============================== */
     .stage{position:relative;height:100dvh;overflow:hidden;}
@@ -295,6 +295,64 @@
      ========================================================================== */
   /* RECIPES:START — the publisher replaces everything between these two markers with this brand's recipes. */
   const RECIPES = [
+  {
+    "slug": "zz-test-recipe",
+    "name": "ZZ Test Recipe",
+    "concept": "La Popular",
+    "type": "prep",
+    "yield_1x": "1 bush",
+    "yield_2x": "2 bush",
+    "prep_time": "1 year",
+    "shelf_life": "Forever",
+    "plate": "Pot",
+    "note": "This is a fake recipe for testing purposes.",
+    "category": "Misc",
+    "status": "live",
+    "ingredients": [
+      {
+        "ingredient": "Potting Soil",
+        "qty_1x": "1",
+        "qty_2x": "2",
+        "uom": "lbs"
+      },
+      {
+        "ingredient": "Seeds",
+        "qty_1x": "2",
+        "qty_2x": "4",
+        "uom": "ea"
+      },
+      {
+        "ingredient": "Water",
+        "qty_1x": "32",
+        "qty_2x": "64",
+        "uom": "oz-fl"
+      },
+      {
+        "ingredient": "Indirect Sunlight",
+        "qty_1x": "4",
+        "qty_2x": "8",
+        "uom": "bunch"
+      }
+    ],
+    "steps": [
+      {
+        "text": "Add potting soil.",
+        "step_group": "A"
+      },
+      {
+        "text": "Add seeds.",
+        "step_group": "A"
+      },
+      {
+        "text": "Add water.",
+        "step_group": "B"
+      },
+      {
+        "text": "Add sunlight.",
+        "step_group": "C"
+      }
+    ]
+  },
   {
     "slug": "cachetada",
     "name": "Cachetada",
@@ -9852,6 +9910,13 @@
       navlistEl.querySelectorAll(".navletter").forEach(el=>{
         const hasResults = liveLetters.has(el.textContent.trim());
         el.style.opacity = hasResults ? "" : "0.25";
+      });
+
+      // dim/disable letterbar jump buttons that have no results
+      document.querySelectorAll(".letterbar button[data-jump]").forEach(btn=>{
+        const hasResults = liveLetters.has(btn.dataset.jump.toUpperCase());
+        btn.disabled = !hasResults;
+        btn.style.opacity = hasResults ? "" : "0.25";
       });
     }
 
