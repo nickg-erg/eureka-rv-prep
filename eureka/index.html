@@ -127,7 +127,7 @@
       padding:.5rem 0;text-transform:uppercase;letter-spacing:.05em;
       transition:background .12s ease,color .12s ease;}
     .typebar button:hover{background:#333;color:#fff;}
-    .typebar button.current{background:var(--brand-primary);color:#fff;}
+    .typebar button.current{background:var(--brand-accent);color:#fff;}
 
     /* category filter chips */
     .catbar{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem .6rem;
@@ -137,7 +137,7 @@
       font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;
       padding:.28rem .6rem;line-height:1;transition:background .12s ease,color .12s ease,border-color .12s ease;}
     .catchip:hover{background:var(--ink-2);color:#fff;}
-    .catchip.current{background:var(--brand-primary);border-color:var(--brand-primary);color:#fff;}
+    .catchip.current{background:var(--brand-accent);border-color:var(--brand-accent);color:#fff;}
 
     /* ============================== STAGE =============================== */
     .stage{position:relative;height:100dvh;overflow:hidden;}
@@ -11109,7 +11109,7 @@
     "slug": "zz-test-recipe",
     "name": "ZZ Test Recipe",
     "concept": "Eureka",
-    "type": "plate",
+    "type": "prep",
     "yield_1x": "1 bush",
     "yield_2x": "2 bush",
     "prep_time": "1 year",
@@ -11139,8 +11139,8 @@
       },
       {
         "ingredient": "Indirect Sunlight",
-        "qty_1x": "4",
-        "qty_2x": "8",
+        "qty_1x": "3",
+        "qty_2x": "6",
         "uom": "bunch"
       }
     ],
@@ -11151,7 +11151,7 @@
       },
       {
         "text": "Add seeds.",
-        "step_group": "A"
+        "step_group": "B"
       },
       {
         "text": "Add water.",
@@ -11353,16 +11353,54 @@
 
     function applyFilters(){
       navlistEl.classList.toggle("type-filtered", activeType !== null);
+
+      // track which cats and letters have at least one visible result
+      const liveCats = new Set();
+      const liveLetters = new Set();
+
       navlistEl.querySelectorAll(".navgroup").forEach(g=>{
         let shown = 0;
         g.querySelectorAll("a").forEach(a=>{
           const typeOk = !activeType || a.dataset.type===activeType;
           const catOk  = activeCat==="*" || a.dataset.cat===activeCat;
           const on = typeOk && catOk;
+          if(on){
+            if(a.dataset.cat) liveCats.add(a.dataset.cat);
+            const letterEl = g.querySelector(".navletter");
+            if(letterEl) liveLetters.add(letterEl.textContent.trim());
+          }
           a.style.display = on ? "" : "none";
           if(on) shown++;
         });
         g.style.display = shown ? "" : "none";
+      });
+
+      // dim category chips that have no results under current type filter
+      document.querySelectorAll(".catchip").forEach(chip=>{
+        if(chip.dataset.cat==="*") return; // All chip always active
+        const hasResults = liveCats.has(chip.dataset.cat);
+        chip.disabled = !hasResults;
+        chip.style.opacity = hasResults ? "" : "0.3";
+        chip.style.pointerEvents = hasResults ? "" : "none";
+        // if currently selected chip becomes empty, revert to All
+        if(!hasResults && chip.classList.contains("current")){
+          chip.classList.remove("current");
+          document.querySelector(".catchip[data-cat='*']").classList.add("current");
+          activeCat = "*";
+        }
+      });
+
+      // dim A-Z letter headers that have no results
+      navlistEl.querySelectorAll(".navletter").forEach(el=>{
+        const hasResults = liveLetters.has(el.textContent.trim());
+        el.style.opacity = hasResults ? "" : "0.25";
+      });
+
+      // dim/disable letterbar jump buttons that have no results
+      document.querySelectorAll(".letterbar button[data-jump]").forEach(btn=>{
+        const hasResults = liveLetters.has(btn.dataset.jump.toUpperCase());
+        btn.disabled = !hasResults;
+        btn.style.opacity = hasResults ? "" : "0.25";
       });
     }
 
