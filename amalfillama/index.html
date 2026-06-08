@@ -10,8 +10,8 @@
        BRANDING — injected per brand at publish time. Do not hardcode brand values here.
        ========================================================================= */
     :root{
-      --brand-primary:#910707;   /* primary brand color */
-      --brand-accent:#1A1A1A;     /* accent / secondary brand color */
+      --brand-primary:#1A1A1A;   /* primary brand color */
+      --brand-accent:#910707;     /* accent / secondary brand color */
       --ink:#161616;
       --ink-2:#202020;
       --ink-3:#3a3a3a;
@@ -7989,16 +7989,47 @@
 
     function applyFilters(){
       navlistEl.classList.toggle("type-filtered", activeType !== null);
+
+      // track which cats and letters have at least one visible result
+      const liveCats = new Set();
+      const liveLetters = new Set();
+
       navlistEl.querySelectorAll(".navgroup").forEach(g=>{
         let shown = 0;
         g.querySelectorAll("a").forEach(a=>{
           const typeOk = !activeType || a.dataset.type===activeType;
           const catOk  = activeCat==="*" || a.dataset.cat===activeCat;
           const on = typeOk && catOk;
+          if(on){
+            if(a.dataset.cat) liveCats.add(a.dataset.cat);
+            const letterEl = g.querySelector(".navletter");
+            if(letterEl) liveLetters.add(letterEl.textContent.trim());
+          }
           a.style.display = on ? "" : "none";
           if(on) shown++;
         });
         g.style.display = shown ? "" : "none";
+      });
+
+      // dim category chips that have no results under current type filter
+      document.querySelectorAll(".catchip").forEach(chip=>{
+        if(chip.dataset.cat==="*") return; // All chip always active
+        const hasResults = liveCats.has(chip.dataset.cat);
+        chip.disabled = !hasResults;
+        chip.style.opacity = hasResults ? "" : "0.3";
+        chip.style.pointerEvents = hasResults ? "" : "none";
+        // if currently selected chip becomes empty, revert to All
+        if(!hasResults && chip.classList.contains("current")){
+          chip.classList.remove("current");
+          document.querySelector(".catchip[data-cat='*']").classList.add("current");
+          activeCat = "*";
+        }
+      });
+
+      // dim A-Z letter headers that have no results
+      navlistEl.querySelectorAll(".navletter").forEach(el=>{
+        const hasResults = liveLetters.has(el.textContent.trim());
+        el.style.opacity = hasResults ? "" : "0.25";
       });
     }
 
