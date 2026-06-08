@@ -76,21 +76,20 @@
     /* A–Z jump strip (buttons; JS scrolls the list, no hash change) */
     .letterbar{
       flex:0 0 auto;
-      display:flex;flex-wrap:wrap;
+      display:grid;grid-template-columns:repeat(7,1fr);
       gap:1px;background:#2a2a2a;border-bottom:2px solid #2a2a2a;
-      padding:0;
     }
     .letterbar button{
       appearance:none;-webkit-appearance:none;border:0;cursor:pointer;
       background:#1e1e1e;color:#fff;
-      font-family:var(--mono);font-size:.88rem;line-height:1;
-      padding:.5rem .55rem;text-transform:uppercase;
-      transition:background .12s ease;flex:0 0 auto;
+      font-family:var(--mono);font-size:.92rem;line-height:1;
+      padding:.5rem 0;text-transform:uppercase;
+      transition:background .12s ease;
     }
     .letterbar button:hover{background:#2a2a2a;}
     .letterbar button:active{background:var(--brand-accent);}
-    .letterbar button.empty{display:none;}
-    .letterbar button.filtered-out{display:none;}
+    .letterbar button.empty,
+    .letterbar button.filtered-out{color:#3a3a3a;background:#1e1e1e;cursor:default;}
 
     /* scrolling recipe-link list */
     .navlist{
@@ -515,12 +514,13 @@
         }
       });
 
-      // hide letterbar buttons with no results (only when a filter is active)
+      // filtered-out letters match .empty styling (2 states: active vs inactive)
       document.querySelectorAll(".letterbar button[data-jump]").forEach(btn=>{
         const hasResults = (activeType===null && activeCat==="*") ||
                            liveLetters.has(btn.dataset.jump.toUpperCase());
         btn.disabled = !hasResults;
         btn.classList.toggle("filtered-out", !hasResults);
+        if(hasResults) btn.onclick = null; // restore click
       });
     }
 
