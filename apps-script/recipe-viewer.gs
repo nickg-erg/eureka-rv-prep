@@ -93,6 +93,25 @@ function onOpen() {
   menu.addToUi();
 }
 
+// Returns the Sheets UI when available (menu/browser context), or a headless
+// shim when called from the Apps Script editor or a trigger (mobile workaround).
+function ui_() {
+  try {
+    var u = SpreadsheetApp.getUi();
+    // Verify it's actually usable — getUi() doesn't always throw immediately
+    u.ButtonSet; // accessing a property forces the real check
+    return u;
+  } catch (e) {
+    var _Button = { OK: 'OK', CANCEL: 'CANCEL', YES: 'YES', NO: 'NO' };
+    return {
+      Button:    _Button,
+      ButtonSet: { OK: 'OK', OK_CANCEL: 'OK_CANCEL', YES_NO: 'YES_NO' },
+      alert:   function(t, m, bs) { Logger.log('[ALERT] ' + t + (m ? '\n' + m : '')); return _Button.OK; },
+      prompt:  function(t, m, bs) { return { getSelectedButton: function(){ return _Button.OK; }, getResponseText: function(){ return ''; } }; }
+    };
+  }
+}
+
 function publishEureka()    { publishToSite(BRANDS.eureka); }
 function previewEureka()    { previewPublish(BRANDS.eureka); }
 function syncEureka()       { syncDropPhotos(BRANDS.eureka); }
@@ -128,7 +147,7 @@ function setupDropdowns()   {
    ============================================================ */
 
 function setGithubToken() {
-  var ui  = SpreadsheetApp.getUi();
+  var ui  = ui_();
   var res = ui.prompt(
     'GitHub token',
     'Paste your GitHub PAT (Contents: Read & Write on erg-recipe-viewer).',
@@ -149,7 +168,7 @@ function token_() {
    ============================================================ */
 
 function previewPublish(cfg) {
-  var ui      = SpreadsheetApp.getUi();
+  var ui      = ui_();
   var recipes = buildRecipes_(cfg);
   var tok     = token_();
   var live    = null;
@@ -163,7 +182,7 @@ function previewPublish(cfg) {
 }
 
 function publishToSite(cfg) {
-  var ui  = SpreadsheetApp.getUi();
+  var ui  = ui_();
   var tok = token_();
   if (!tok) { ui.alert('No GitHub token — run Admin > Set / update GitHub token first.'); return; }
 
@@ -433,7 +452,7 @@ function setupValidation(opts) {
   applyListByHeader_(ing, 'concept', opts.concepts);
   if (stp) applyListByHeader_(stp, 'concept', opts.concepts);
 
-  SpreadsheetApp.getUi().alert(
+  ui_().alert(
     '✅  Dropdowns updated\n\n' +
     '• UOM: ' + uoms.length + ' units (from Config tab — edit that tab to add more)\n' +
     '• Recipes: type, status dropdowns set\n' +
@@ -463,7 +482,7 @@ function applyListByHeader_(sheet, header, values) {
    ============================================================ */
 
 function syncDropPhotos(cfg) {
-  var ui  = SpreadsheetApp.getUi();
+  var ui  = ui_();
   var tok = token_();
   if (!tok) { ui.alert('No GitHub token — run Admin > Set / update GitHub token first.'); return; }
   if (!cfg.dropFolderId || !cfg.doneFolderId || !cfg.reviewFolderId) {
@@ -656,7 +675,7 @@ function notifyBounces_(cfg, bounced, committed) {
  * "Sync new photos now" to process the drop folder as normal.
  */
 function importSourcePhotos(cfg) {
-  var ui       = SpreadsheetApp.getUi();
+  var ui       = ui_();
   var folderId = cfg.sourceFolderId || null;
 
   if (!folderId) {
@@ -787,7 +806,7 @@ function listRepoImages_(token, cfg) {
  * The template hardcodes slug.jpg so .jpeg/.png duplicates are orphaned.
  */
 function deleteNonJpgImages(cfg) {
-  var ui  = SpreadsheetApp.getUi();
+  var ui  = ui_();
   var tok = token_();
   if (!tok) { ui.alert('No GitHub token.'); return; }
 
@@ -825,7 +844,7 @@ function deleteNonJpgImages(cfg) {
    ============================================================ */
 
 function cleanDropFolderLaPopular() {
-  var ui     = SpreadsheetApp.getUi();
+  var ui     = ui_();
   var folder = DriveApp.getFolderById(BRANDS.lapopular.dropFolderId);
 
   // Files in drop folder (after staging) that need renaming to correct slug
@@ -921,7 +940,7 @@ function cleanDropFolderLaPopular() {
 }
 
 function cleanDropFolderAmalfi() {
-  var ui     = SpreadsheetApp.getUi();
+  var ui     = ui_();
   var folder = DriveApp.getFolderById(BRANDS.amalfi.dropFolderId);
 
   // Files that staged to a wrong slug and need correcting
@@ -997,7 +1016,7 @@ function cleanDropFolderAmalfi() {
 }
 
 function cleanAmalfiReviewFolder() {
-  var ui     = SpreadsheetApp.getUi();
+  var ui     = ui_();
   var folder = DriveApp.getFolderById(BRANDS.amalfi.reviewFolderId);
 
   // One file that can be salvaged — rename and move to Drop for re-sync
